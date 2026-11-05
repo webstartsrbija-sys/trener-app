@@ -155,6 +155,21 @@ if (post()) {
                 }
                 preusmeri($ovde . '?tab=nalog');
 
+            case 'slika':
+                $r = primi_profilnu();
+                if (isset($r['greska'])) {
+                    poruka($r['greska'], 'greska');
+                } else {
+                    postavi_profilnu($k['korisnik_id'], $r['ime']);
+                    poruka('Profilna slika je postavljena');
+                }
+                preusmeri($ovde . '?tab=nalog');
+
+            case 'slika_ukloni':
+                postavi_profilnu($k['korisnik_id'], null);
+                poruka('Profilna slika je uklonjena');
+                preusmeri($ovde . '?tab=nalog');
+
             case 'lozinka':
                 $l1 = (string)($_POST['lozinka'] ?? '');
                 $g = greska_nove_lozinke($l1, (string)($_POST['lozinka2'] ?? ''));
@@ -214,8 +229,8 @@ require KOREN . '/delovi/glava.php';
 $n = clanarina_dana($k);
 ?>
 <a class="link" href="/trener/klijenti<?= (int)$k['arhiviran'] ? '?arhiva=1' : '' ?>">← Svi klijenti</a>
-<section class="band"><span class="eyebrow" style="color:inherit;opacity:.7"><?= e($k['cilj'] ?: 'Klijent') ?> • od <?= e(datum_kratko($k['datum_pocetka'])) ?></span><h1><?= e($k['ime']) ?></h1>
-  <span class="muted">Nedelja <?= nedelja_programa($k) ?> • <?= (int)$k['treninga_nedeljno'] ?> treninga nedeljno<?= (int)$k['arhiviran'] ? ' • ARHIVIRAN' : '' ?></span></section>
+<section class="band band-profil"><?= avatar($k['korisnik_id'], $k['ime'], $k['slika'], 'lg') ?><div class="stack" style="gap:6px;min-width:0"><span class="eyebrow" style="color:inherit;opacity:.7"><?= e($k['cilj'] ?: 'Klijent') ?> • od <?= e(datum_kratko($k['datum_pocetka'])) ?></span><h1><?= e($k['ime']) ?></h1>
+  <span class="muted">Nedelja <?= nedelja_programa($k) ?> • <?= (int)$k['treninga_nedeljno'] ?> treninga nedeljno<?= (int)$k['arhiviran'] ? ' • ARHIVIRAN' : '' ?></span></div></section>
 <?php if ($poziv): ?>
 <section class="card alert <?= $poziv['poslat'] ? 'warn' : 'bad' ?>"><b><?= $poziv['poslat'] ? 'Mejl je poslat.' : 'Mejl nije otišao.' ?></b>
   <span>Ako ne stigne, pošalji klijentu ovaj link (npr. porukom). Važi <?= (int)pod('bezbednost.token_sati', 48) ?> sata i može da se iskoristi jednom:</span>
@@ -327,6 +342,18 @@ if ($tab === 'program') {
   </div>
   <datalist id="ciljevi"><?php foreach (CILJEVI as $c): ?><option value="<?= e($c) ?>"><?php endforeach; ?></datalist>
   <button class="btn primary block" name="akcija" value="nalog">Sačuvaj podatke</button>
+</form>
+<form class="card" method="post" enctype="multipart/form-data"><?= csrf_polje() ?><h3>Profilna slika</h3>
+  <div class="row" style="gap:16px;flex-wrap:nowrap">
+    <?= avatar($k['korisnik_id'], $k['ime'], $k['slika'], 'lg') ?>
+    <div class="stack" style="gap:8px;min-width:0;flex:1">
+      <input type="hidden" name="MAX_FILE_SIZE" value="<?= SLIKA_MAX_MB * 1048576 ?>">
+      <input class="tin" type="file" name="slika" accept="image/jpeg,image/png,image/webp" required aria-label="Izaberi sliku">
+      <div class="row"><button class="btn small" name="akcija" value="slika">Sačuvaj sliku</button>
+      <?php if ($k['slika']): ?><button class="link" name="akcija" value="slika_ukloni" formnovalidate data-potvrdi="Ukloniti sliku klijenta?" style="color:var(--bad)">Ukloni</button><?php endif; ?></div>
+    </div>
+  </div>
+  <span class="muted" style="font-size:13px">Klijent može i sam da postavi sliku u meniju „Moj nalog“.</span>
 </form>
 <section class="card"><h3>Prijava</h3>
   <span class="muted"><?= (int)$k['ima_lozinku'] ? 'Lozinka je postavljena' . ($k['poslednja_prijava'] ? ' • poslednja prijava ' . e(datum_kratko($k['poslednja_prijava'])) : '') . '.' : 'Klijent još nije postavio lozinku.' ?></span>

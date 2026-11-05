@@ -10,7 +10,7 @@ const CILJEVI = ['Gubitak masti', 'Povećanje snage', 'Rekompozicija', 'Povećan
 /** Klijent sa podacima naloga i okvirom ishrane. Bez provere prava — to radi pozivalac. */
 function klijent(int $id): ?array
 {
-    $k = red('SELECT kl.*, k.ime, k.email, k.aktivan, k.poslednja_prijava,
+    $k = red('SELECT kl.*, k.ime, k.email, k.slika, k.aktivan, k.poslednja_prijava,
                      (k.lozinka_hash IS NOT NULL) AS ima_lozinku,
                      o.kcal, o.p, o.uh, o.m
               FROM klijenti kl

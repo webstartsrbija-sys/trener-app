@@ -66,7 +66,7 @@ function korisnik(): ?array
         return $k = null;
     }
 
-    $r = red('SELECT k.id, k.uloga, k.email, k.ime, k.aktivan, k.lozinka_hash, kl.id AS klijent_id
+    $r = red('SELECT k.id, k.uloga, k.email, k.ime, k.slika, k.aktivan, k.lozinka_hash, kl.id AS klijent_id
               FROM korisnici k LEFT JOIN klijenti kl ON kl.korisnik_id = k.id
               WHERE k.id = ?', [$id]);
     if (!$r || !(int)$r['aktivan'] || ($r['uloga'] === 'klijent' && !$r['klijent_id'])) {

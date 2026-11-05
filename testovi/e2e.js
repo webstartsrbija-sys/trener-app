@@ -205,6 +205,36 @@ async function tok(browser, sirina) {
     await proveriStranu(T.p, sirina, ime);
   }
 
+  /* ---- 6a. Profilna slika ---- */
+  const probnaSlika = path.join(SLIKE, 'proba-slika.jpg');
+  // Pravougaona slika (600×400) — aplikacija mora da je iseče na kvadrat 320×320
+  execSync(`php -r '$i=imagecreatetruecolor(600,400);imagefill($i,0,0,imagecolorallocate($i,29,107,87));imagejpeg($i,"${probnaSlika}");'`);
+  await K.p.goto(BAZA + '/nalog');
+  await K.p.setInputFiles('input[name=slika]', probnaSlika);
+  await Promise.all([K.p.waitForNavigation(), K.p.click('button:has-text("Sačuvaj sliku")')]);
+  ok(await K.p.isVisible('text=Profilna slika je postavljena'), 'klijent je postavio profilnu sliku');
+  const dim = await K.p.$eval('header .av img', (i) => i.complete ? [i.naturalWidth, i.naturalHeight] : [0, 0]).catch(() => [0, 0]);
+  ok(dim[0] === 320 && dim[1] === 320, 'slika u zaglavlju je isečena na 320×320: ' + dim.join('×'));
+  await proveriStranu(K.p, sirina, 'klijent-moj-nalog');
+  await T.p.goto(BAZA + '/trener/klijenti');
+  const src = await T.p.locator('a.client', { hasText: novi.ime }).locator('.av img').getAttribute('src');
+  ok(/^\/slika\/\d+/.test(src || ''), 'trener vidi sliku klijenta u listi');
+  const tSlika = await T.p.evaluate(async (u) => (await fetch(u)).status, src);
+  ok(tSlika === 200, 'trener može da otvori sliku klijenta');
+  // Trener postavlja sliku sebi i klijentu
+  await T.p.goto(`${BAZA}/trener/klijent/${noviId}?tab=nalog`);
+  await T.p.setInputFiles('input[name=slika]', probnaSlika);
+  await Promise.all([T.p.waitForNavigation(), T.p.click('button:has-text("Sačuvaj sliku")')]);
+  ok(await T.p.isVisible('text=Profilna slika je postavljena'), 'trener je postavio sliku klijentu');
+  // Pogrešan fajl se odbija
+  const lazna = path.join(SLIKE, 'nije-slika.jpg');
+  fs.writeFileSync(lazna, '<?php echo 1; ?>');
+  await K.p.goto(BAZA + '/nalog');
+  await K.p.setInputFiles('input[name=slika]', lazna);
+  await Promise.all([K.p.waitForNavigation(), K.p.click('button:has-text("Sačuvaj sliku")')]);
+  ok(await K.p.isVisible('text=JPG, PNG ili WebP'), 'fajl koji nije slika je odbijen');
+  novi.slika = (await T.p.locator('.band .av img').getAttribute('src')).split('?')[0];
+
   /* ---- 5. Izolacija: novi klijent (A) protiv Ane (B) ---- */
   K.p.ocekujeOdbijanje = true;
   // Direktan URL trenerovih strana
@@ -250,6 +280,10 @@ async function tok(browser, sirina) {
   ok(!anaTekst.includes('777') && !anaTekst.includes('HAK'), 'Anini treninzi nisu promenjeni podmetnutim ID-jem');
   await A.p.goto(BAZA + '/trening');
   ok(!(await A.p.textContent('main')).includes('HAK'), 'Anina napomena nije promenjena');
+  K.p.ocekujeOdbijanje = true; A.p.ocekujeOdbijanje = true;
+  const tudjaSlika = await A.p.evaluate(async (u) => (await fetch(u)).status, novi.slika);
+  ok(tudjaSlika === 404, 'Ana ne može da otvori sliku drugog klijenta (' + novi.slika + ' -> ' + tudjaSlika + ')');
+  A.p.ocekujeOdbijanje = false;
   await A.p.goto(BAZA + '/ishrana');
   ok(!(await A.p.textContent('main')).includes('Plan ' + sirina), 'Ana ne vidi lični primer ishrane drugog klijenta');
   await A.ctx.close();

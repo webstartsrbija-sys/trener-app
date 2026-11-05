@@ -14,6 +14,7 @@ require __DIR__ . '/app/program.php';
 require __DIR__ . '/app/sesije.php';
 require __DIR__ . '/app/napredak.php';
 require __DIR__ . '/app/ishrana.php';
+require __DIR__ . '/app/slike.php';
 
 podesavanja();
 
@@ -40,6 +41,7 @@ $rute = [
     '#^/manifest\.webmanifest$#'     => 'strane/javno/manifest.php',
     '#^/vodic/(\d+)$#'               => 'strane/vodic-fajl.php',
     '#^/nalog$#'                     => 'strane/nalog.php',
+    '#^/slika/(\d+)$#'               => 'strane/slika.php',
 
     '#^/trening$#'                   => 'strane/klijent/trening.php',
     '#^/ishrana$#'                   => 'strane/klijent/ishrana.php',

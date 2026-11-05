@@ -56,7 +56,7 @@ $need = count(array_filter($lista, fn($k) => $k['signal']['nivo'] < 2));
 <?php if (!$lista): ?><p class="muted"><?= $trazi !== '' ? 'Nema klijenata za tu pretragu.' : ($arhiva ? 'Arhiva je prazna.' : 'Još nema klijenata. Napravi prvog dugmetom „+ Novi klijent“.') ?></p><?php endif; ?>
 <?php foreach ($lista as $k): ?>
   <a class="card client" href="/trener/klijent/<?= $k['id'] ?>">
-    <div class="av"><?= e(inicijali($k['ime'])) ?></div>
+    <?= avatar($k['korisnik_id'], $k['ime'], $k['slika']) ?>
     <div class="info"><div class="row between"><span class="name"><?= e($k['ime']) ?></span><span class="muted" style="font-size:13px">Ned. <?= nedelja_programa($k) ?></span></div>
       <div class="muted" style="font-size:14px"><?= e($k['cilj'] ?: '—') ?> • doslednost <?= $k['doslednost'] !== null ? $k['doslednost'] . '%' : '—' ?><?= $k['promena_kg'] !== null ? ' • ' . broj_znak($k['promena_kg']) . ' kg' : '' ?></div>
       <div style="margin-top:6px" class="row"><span class="chip <?= $k['signal']['t'] ?>"><?= e($k['signal']['m']) ?></span><?= clanarina_chip($k) ?>

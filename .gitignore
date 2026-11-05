@@ -12,3 +12,4 @@ testovi/rezultati/
 isporuka/
 *.log
 .DS_Store
+privatno/slike/*

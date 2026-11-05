@@ -200,3 +200,9 @@ details.stavka summary::-webkit-details-marker{display:none}
 .stavka-red.nova{border-top:1px dashed var(--line);padding-top:8px}
 .stavka-red.nova select.naziv{font-weight:500}
 @media (max-width:480px){.stavka-red{grid-template-columns:minmax(0,1fr) 84px auto}.stavka-red .k{grid-column:1/3;text-align:left;order:3}.stavka-red>button,.stavka-red>.btn{grid-column:3;grid-row:1}.stavka-red.nova .k:empty{display:none}}
+.av{overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.av.lg{width:72px;height:72px;font-size:24px}
+.band .av.lg{background:rgba(255,255,255,.12);color:var(--head-ink)}
+.band-profil{flex-direction:row;align-items:center;gap:14px}
+.meni summary .av.sm{border:2px solid rgba(255,255,255,.25)}

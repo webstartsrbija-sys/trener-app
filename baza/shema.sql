@@ -23,6 +23,7 @@ CREATE TABLE korisnici (
     uloga             ENUM('trener','klijent') NOT NULL,
     email             VARCHAR(190) NOT NULL,
     ime               VARCHAR(120) NOT NULL,
+    slika             VARCHAR(60) NULL,               -- profilna slika u privatno/slike/ (nasumično ime), NULL = inicijali
     lozinka_hash      VARCHAR(255) NULL,              -- NULL dok klijent ne postavi lozinku
     aktivan           TINYINT(1) NOT NULL DEFAULT 1,  -- 0 = arhiviran, ne može da se prijavi
     poslednja_prijava DATETIME NULL,

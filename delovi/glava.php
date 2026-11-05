@@ -30,10 +30,10 @@ $ja = $nav ? korisnik() : null;
   <a class="brand" href="/"><?= e(pod('sajt.naziv')) ?><small><?= e(pod('sajt.podnaslov')) ?></small></a>
   <?php if ($ja): ?>
   <details class="meni">
-    <summary aria-label="Nalog"><span class="av sm"><?= e(inicijali($ja['ime'])) ?></span></summary>
+    <summary aria-label="Nalog"><?= avatar($ja['id'], $ja['ime'], $ja['slika'] ?? null, 'sm') ?></summary>
     <div class="meni-lista">
       <div class="muted" style="font-size:13px;padding:4px 10px 8px"><?= e($ja['ime']) ?><br><?= e($ja['email']) ?></div>
-      <a class="meni-stavka" href="/nalog">Promeni lozinku</a>
+      <a class="meni-stavka" href="/nalog">Moj nalog (slika, lozinka)</a>
       <button type="button" class="meni-stavka" data-tema>Tamna / svetla tema</button>
       <form method="post" action="/odjava"><?= csrf_polje() ?><button class="meni-stavka">Odjavi se</button></form>
     </div>
