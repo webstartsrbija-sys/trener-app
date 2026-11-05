@@ -17,6 +17,11 @@ require __DIR__ . '/app/ishrana.php';
 
 podesavanja();
 
+// Sesija se pokreće PRE bilo kakvog ispisa. Kad je output_buffering isključen
+// (čest slučaj na cPanel-u), kasnije pokretanje ne može da pošalje kolačić,
+// pa svaka forma pada sa 419. Zato ovde, za svaki zahtev.
+sesija_start();
+
 // Osnovna zaštitna zaglavlja
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: same-origin');

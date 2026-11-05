@@ -22,6 +22,11 @@ function sesija_start(): void
     if (session_status() === PHP_SESSION_ACTIVE || PHP_SAPI === 'cli') {
         return;
     }
+    if (headers_sent($fajl, $linija)) {
+        // Glasno, da se greška vidi u logu umesto kao "sesija je istekla"
+        error_log("sesija_start(): ispis je već počeo u $fajl:$linija — kolačić sesije ne može da se pošalje");
+        return;
+    }
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');
     session_set_cookie_params([

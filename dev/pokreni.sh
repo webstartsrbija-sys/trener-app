@@ -12,4 +12,5 @@ if [ "$1" = "--nova" ]; then
   php alati/novi-trener.php trener@primer.rs "Tomislav" "trener-lozinka-1"
   rm -rf kes/mejlovi
 fi
-exec php -d display_errors=stderr -d error_reporting=-1 -S 127.0.0.1:${PORT:-8080} dev/ruter.php
+# output_buffering=0 kao na cPanel-u, da se greške sa sesijom vide i lokalno
+exec php -d output_buffering=0 -d display_errors=stderr -d error_reporting=-1 -S 127.0.0.1:${PORT:-8080} dev/ruter.php
