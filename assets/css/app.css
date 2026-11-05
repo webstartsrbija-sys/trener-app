@@ -206,3 +206,9 @@ details.stavka summary::-webkit-details-marker{display:none}
 .band .av.lg{background:rgba(255,255,255,.12);color:var(--head-ink)}
 .band-profil{flex-direction:row;align-items:center;gap:14px}
 .meni summary .av.sm{border:2px solid rgba(255,255,255,.25)}
+details.dan-hrana{border-top:1px solid var(--line);padding-top:10px}
+details.dan-hrana summary{display:flex;justify-content:space-between;gap:12px;align-items:center;cursor:pointer;list-style:none}
+details.dan-hrana summary::-webkit-details-marker{display:none}
+details.dan-hrana summary .k{font-size:13px;color:var(--muted);text-align:right}
+details.dan-hrana[open] summary b{color:var(--brand)}
+details.dan-hrana .stack>.meal:first-child{border-top:0;padding-top:0}

@@ -261,7 +261,6 @@ if ($tab === 'program') {
     require KOREN . '/delovi/napredak.php';
 } elseif ($tab === 'ishrana') {
     $okv = okvir($k) ?? ['kcal' => '', 'p' => '', 'uh' => '', 'm' => ''];
-    $poslednjih = ishrana_po_danu($id, dan_plus(danas(), -6), danas());
 ?>
 <form class="card" method="post"><?= csrf_polje() ?><h2>Dnevni okvir</h2>
   <div class="form">
@@ -288,10 +287,39 @@ if ($tab === 'program') {
   </form>
   <?php endif; ?>
 </section>
-<section class="card"><h2>Poslednjih 7 dana</h2>
-<?php for ($d = danas(); $d >= dan_plus(danas(), -6); $d = dan_plus($d, -1)): $x = $poslednjih[$d] ?? null; ?>
-  <div class="meal"><div><b><?= DANI_KRATKO[dan_u_nedelji($d)] ?></b> <span class="muted"><?= date('j.n.', strtotime($d)) ?></span></div>
-    <div class="k"><?= $x ? (int)round($x['kcal']) . ' kcal<br>P ' . (int)$x['p'] . ' • UH ' . (int)$x['uh'] . ' • M ' . (int)$x['m'] : 'nije upisano' ?></div></div>
+<?php
+    // 7 dana koji se završavaju datumom ?do= (podrazumevano danas)
+    $do_d = ispravan_datum($_GET['do'] ?? null) ? min(danas(), $_GET['do']) : danas();
+    $od_d = dan_plus($do_d, -6);
+    $po_danu = dnevnik_po_danu($id, $od_d, $do_d);
+    $okv_k = okvir($k);
+    $otvoren = null;   // najnoviji dan sa upisom je otvoren
+    for ($d = $do_d; $d >= $od_d && $otvoren === null; $d = dan_plus($d, -1)) {
+        $otvoren = isset($po_danu[$d]) ? $d : null;
+    }
+?>
+<section class="card"><div class="row between"><h2>Šta je jeo</h2>
+  <div class="row" style="gap:4px">
+    <a class="btn small" href="<?= $ovde ?>?tab=ishrana&do=<?= e(dan_plus($od_d, -1)) ?>#jelo" aria-label="Prethodnih 7 dana">‹</a>
+    <b style="font-size:14px" id="jelo"><?= date('j.n.', strtotime($od_d)) ?>–<?= date('j.n.', strtotime($do_d)) ?></b>
+    <?php if ($do_d < danas()): ?><a class="btn small" href="<?= $ovde ?>?tab=ishrana&do=<?= e(min(danas(), dan_plus($do_d, 7))) ?>#jelo" aria-label="Sledećih 7 dana">›</a><?php else: ?><span class="btn small" aria-disabled="true">›</span><?php endif; ?>
+  </div></div>
+  <p class="muted" style="margin:0;font-size:13px">Ono što klijent upiše u „Sastavi svoj dan“. Dodirni dan za spisak namirnica.</p>
+<?php for ($d = $do_d; $d >= $od_d; $d = dan_plus($d, -1)):
+    $st = $po_danu[$d] ?? [];
+    $zb = zbir_obroka($st);
+?>
+  <details class="dan-hrana"<?= $d === $otvoren ? ' open' : '' ?>>
+    <summary><span><b><?= DANI_KRATKO[dan_u_nedelji($d)] ?></b> <span class="muted"><?= date('j.n.', strtotime($d)) ?></span></span>
+      <span class="k"><?php if ($st): ?><span class="chip <?= kcal_u_okviru($zb['kcal'], $okv_k) ? 'ok' : ($okv_k ? 'warn' : '') ?>"><?= (int)round($zb['kcal']) ?><?= $okv_k ? ' / ' . $okv_k['kcal'] : '' ?> kcal</span><br>P <?= (int)round($zb['p']) ?> • UH <?= (int)round($zb['uh']) ?> • M <?= (int)round($zb['m']) ?> • <?= count($st) ?> nam.<?php else: ?>nije upisano<?php endif; ?></span></summary>
+    <?php if ($st): ?>
+    <div class="stack" style="gap:10px;padding-top:10px">
+      <?= spisak_hrane($st) ?>
+      <?= $okv_k ? trake_ostalo($zb, $okv_k, false) : '' ?>
+      <a class="link" href="<?= $ovde ?>?tab=istorija&v=dan&d=<?= e($d) ?>" style="font-size:14px">Ceo dan u istoriji (trening, težina) →</a>
+    </div>
+    <?php endif; ?>
+  </details>
 <?php endfor; ?>
 </section>
 <?php

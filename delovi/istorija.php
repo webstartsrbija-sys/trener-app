@@ -184,6 +184,8 @@ elseif ($st === 'today' || $st === 'plan'): ?>
 <section class="card"><div class="row between"><h2>Ishrana</h2><?= $fo && $okv ? '<span class="chip ' . (kcal_u_okviru($fo['kcal'], $okv) ? 'ok' : 'warn') . '">' . (int)round($fo['kcal']) . ' / ' . $okv['kcal'] . ' kcal</span>' : '' ?></div>
 <?php if ($fo && $okv): ?><?= trake_ostalo($fo, $okv, false) ?>
 <?php elseif ($fo): ?><?= makro_kutija($fo) ?>
+<?php endif; ?>
+<?php if ($fo): ?><div class="stack" style="gap:10px;border-top:1px solid var(--line);padding-top:10px"><span class="eyebrow">Šta je pojedeno</span><?= spisak_hrane(dnevnik($k['id'], $d)) ?></div>
 <?php else: ?><p class="muted" style="margin:0">Ishrana za ovaj dan nije upisana.</p><?php endif; ?>
 </section>
 <section class="card"><div class="row between"><h2>Težina</h2><b><?= isset($tez[$d]) ? broj($tez[$d]) . ' kg' : '<span class="muted">nije upisana</span>' ?></b></div></section>

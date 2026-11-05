@@ -111,6 +111,27 @@ function dnevnik(int $klijent_id, string $datum): array
     return redovi('SELECT * FROM ishrana_dnevnik WHERE klijent_id = ? AND datum = ? ORDER BY id', [$klijent_id, $datum]);
 }
 
+/** Stavke dnevnika po danu: ['2026-11-03' => [stavka, ...]] */
+function dnevnik_po_danu(int $klijent_id, string $od, string $do): array
+{
+    $r = [];
+    foreach (redovi('SELECT * FROM ishrana_dnevnik WHERE klijent_id = ? AND datum BETWEEN ? AND ? ORDER BY datum, id', [$klijent_id, $od, $do]) as $x) {
+        $r[$x['datum']][] = $x;
+    }
+    return $r;
+}
+
+/** Spisak pojedenih namirnica (za trenera i istoriju). */
+function spisak_hrane(array $stavke): string
+{
+    $h = '';
+    foreach ($stavke as $s) {
+        $h .= '<div class="meal"><div><b>' . e($s['naziv']) . '</b> <span class="muted">' . (int)$s['grami'] . ' g</span></div>'
+            . '<div class="k">' . (int)round((float)$s['kcal']) . ' kcal<br>P ' . broj($s['p'], 0) . ' • UH ' . broj($s['uh'], 0) . ' • M ' . broj($s['m'], 0) . '</div></div>';
+    }
+    return $h;
+}
+
 /** Zbir kalorija i makroa po danu: ['2026-11-03' => ['kcal'=>..., ...]] */
 function ishrana_po_danu(int $klijent_id, string $od, string $do): array
 {

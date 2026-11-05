@@ -165,6 +165,14 @@ async function tok(browser, sirina) {
     await T.p.goto(`${BAZA}/trener/klijent/${noviId}?tab=${tab}`);
     await proveriStranu(T.p, sirina, 'trener-klijent-' + tab);
   }
+  // Trener vidi konkretno šta je klijent jeo (Sastavi svoj dan)
+  await T.p.goto(`${BAZA}/trener/klijent/${noviId}?tab=ishrana`);
+  const jelo = await T.p.locator('details.dan-hrana[open]').first().textContent().catch(() => '');
+  ok(/Banana\s*150 g/.test(jelo) && jelo.includes('134 kcal'), 'trener vidi namirnice koje je klijent pojeo (Banana 150 g, 134 kcal)');
+  await T.p.goto(`${BAZA}/trener/klijent/${noviId}?tab=istorija&v=dan`);
+  ok((await T.p.textContent('main')).includes('Šta je pojedeno'), 'istorija dana prikazuje spisak namirnica');
+  await proveriStranu(T.p, sirina, 'trener-klijent-istorija-dan');
+
   // Trener menja program: istorija ostaje netaknuta
   await T.p.goto(`${BAZA}/trener/klijent/${noviId}?tab=program`);
   await T.p.locator('input[name^="serija"][name$="[kg]"]').first().fill('999');
