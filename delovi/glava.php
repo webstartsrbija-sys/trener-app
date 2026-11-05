@@ -9,7 +9,7 @@ $ja = $nav ? korisnik() : null;
 <html lang="sr-Latn">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title><?= e(($naslov ?? '') !== '' ? $naslov . ' — ' . pod('sajt.naziv') : pod('sajt.naziv')) ?></title>
 <meta name="theme-color" content="#15201c">
 <meta name="robots" content="noindex,nofollow">

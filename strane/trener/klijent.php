@@ -262,31 +262,6 @@ if ($tab === 'program') {
 } elseif ($tab === 'ishrana') {
     $okv = okvir($k) ?? ['kcal' => '', 'p' => '', 'uh' => '', 'm' => ''];
 ?>
-<form class="card" method="post"><?= csrf_polje() ?><h2>Dnevni okvir</h2>
-  <div class="form">
-  <?php foreach ([['kcal', 'Kalorije'], ['p', 'Protein (g)'], ['uh', 'UH (g)'], ['m', 'Masti (g)']] as [$kk, $l]): ?>
-    <label><?= $l ?><input class="tin" type="number" inputmode="numeric" min="0" name="<?= $kk ?>" value="<?= e($okv[$kk]) ?>" required></label>
-  <?php endforeach; ?>
-  </div>
-  <p class="muted" style="margin:0;font-size:13px">Primere dana pišeš jednom (meni Ishrana), a klijent ih vidi u svom delu Ishrana.</p>
-  <button class="btn primary block" name="akcija" value="okvir">Sačuvaj</button>
-</form>
-<section class="card"><h2>Primeri ishrane samo za klijenta</h2>
-<?php $licni = primeri($id, true); if (!$licni): ?><p class="muted" style="margin:0;font-size:14px">Klijent vidi zajedničke primere dana. Ovde možeš da mu napraviš lične — iz početka ili kao kopiju zajedničkog primera.</p><?php endif; ?>
-<?php foreach ($licni as $pr): $zz = zbir_obroka($pr['obroci']); ?>
-  <a class="guide" href="/trener/ishrana?p=<?= (int)$pr['id'] ?>"><b><?= e($pr['naziv']) ?></b><span class="muted" style="font-size:13px"><?= (int)$zz['kcal'] ?> kcal • P <?= (int)$zz['p'] ?> <span class="link">Uredi</span></span></a>
-<?php endforeach; ?>
-  <form method="post" action="/trener/ishrana" class="row"><?= csrf_polje() ?><input type="hidden" name="klijent_id" value="<?= $id ?>">
-    <input class="tin" name="naziv" placeholder="Naziv, npr. Plan za <?= e(ime_kratko($k['ime'])) ?>" maxlength="120" style="flex:1 1 180px" aria-label="Naziv primera">
-    <button class="btn" name="akcija" value="primer_dodaj">+ Novi primer za klijenta</button>
-  </form>
-  <?php $zajednicki = primeri(null); $zajednicki = array_filter($zajednicki, fn($x) => $x['klijent_id'] === null); if ($zajednicki): ?>
-  <form method="post" action="/trener/ishrana" class="row"><?= csrf_polje() ?><input type="hidden" name="kopija_za" value="<?= $id ?>">
-    <select class="tin" name="id" style="flex:1 1 180px" aria-label="Zajednički primer"><?php foreach ($zajednicki as $zp): ?><option value="<?= (int)$zp['id'] ?>"><?= e($zp['naziv']) ?></option><?php endforeach; ?></select>
-    <button class="btn" name="akcija" value="primer_kopiraj">Kopiraj za klijenta</button>
-  </form>
-  <?php endif; ?>
-</section>
 <?php
     // 7 dana koji se završavaju datumom ?do= (podrazumevano danas)
     $do_d = ispravan_datum($_GET['do'] ?? null) ? min(danas(), $_GET['do']) : danas();
@@ -321,6 +296,31 @@ if ($tab === 'program') {
     <?php endif; ?>
   </details>
 <?php endfor; ?>
+</section>
+<form class="card" method="post"><?= csrf_polje() ?><h2>Dnevni okvir</h2>
+  <div class="form">
+  <?php foreach ([['kcal', 'Kalorije'], ['p', 'Protein (g)'], ['uh', 'UH (g)'], ['m', 'Masti (g)']] as [$kk, $l]): ?>
+    <label><?= $l ?><input class="tin" type="number" inputmode="numeric" min="0" name="<?= $kk ?>" value="<?= e($okv[$kk]) ?>" required></label>
+  <?php endforeach; ?>
+  </div>
+  <p class="muted" style="margin:0;font-size:13px">Primere dana pišeš jednom (meni Ishrana), a klijent ih vidi u svom delu Ishrana.</p>
+  <button class="btn primary block" name="akcija" value="okvir">Sačuvaj</button>
+</form>
+<section class="card"><h2>Primeri ishrane samo za klijenta</h2>
+<?php $licni = primeri($id, true); if (!$licni): ?><p class="muted" style="margin:0;font-size:14px">Klijent vidi zajedničke primere dana. Ovde možeš da mu napraviš lične — iz početka ili kao kopiju zajedničkog primera.</p><?php endif; ?>
+<?php foreach ($licni as $pr): $zz = zbir_obroka($pr['obroci']); ?>
+  <a class="guide" href="/trener/ishrana?p=<?= (int)$pr['id'] ?>"><b><?= e($pr['naziv']) ?></b><span class="muted" style="font-size:13px"><?= (int)$zz['kcal'] ?> kcal • P <?= (int)$zz['p'] ?> <span class="link">Uredi</span></span></a>
+<?php endforeach; ?>
+  <form method="post" action="/trener/ishrana" class="row"><?= csrf_polje() ?><input type="hidden" name="klijent_id" value="<?= $id ?>">
+    <input class="tin" name="naziv" placeholder="Naziv, npr. Plan za <?= e(ime_kratko($k['ime'])) ?>" maxlength="120" style="flex:1 1 180px" aria-label="Naziv primera">
+    <button class="btn" name="akcija" value="primer_dodaj">+ Novi primer za klijenta</button>
+  </form>
+  <?php $zajednicki = primeri(null); $zajednicki = array_filter($zajednicki, fn($x) => $x['klijent_id'] === null); if ($zajednicki): ?>
+  <form method="post" action="/trener/ishrana" class="row"><?= csrf_polje() ?><input type="hidden" name="kopija_za" value="<?= $id ?>">
+    <select class="tin" name="id" style="flex:1 1 180px" aria-label="Zajednički primer"><?php foreach ($zajednicki as $zp): ?><option value="<?= (int)$zp['id'] ?>"><?= e($zp['naziv']) ?></option><?php endforeach; ?></select>
+    <button class="btn" name="akcija" value="primer_kopiraj">Kopiraj za klijenta</button>
+  </form>
+  <?php endif; ?>
 </section>
 <?php
 } elseif ($tab === 'clanarina') {

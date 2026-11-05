@@ -36,8 +36,8 @@
   --warn-soft:#33270f; --bad-soft:#3a1915; color-scheme:dark}
 *{box-sizing:border-box}
 html,body{background:var(--bg)}
-html{scroll-padding-top:calc(72px + env(safe-area-inset-top,0px))}
-body{margin:0;color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;font-variant-numeric:tabular-nums;-webkit-text-size-adjust:100%;overflow-x:hidden}
+html{scroll-padding-top:calc(72px + env(safe-area-inset-top,0px));-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}
+body{margin:0;color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;font-variant-numeric:tabular-nums;overflow-x:hidden;overflow-x:clip}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--head)}
 img{max-width:100%}
 [hidden]{display:none!important}
@@ -51,7 +51,7 @@ header.top .wrap{display:flex;align-items:center;justify-content:space-between;g
 .brand{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:.04em;text-transform:uppercase;line-height:1;text-decoration:none;color:inherit}
 .brand small{display:block;font-family:var(--body);font-size:11px;font-weight:500;letter-spacing:.12em;opacity:.7;margin-top:3px}
 main{padding-block:16px 40px;display:flex;flex-direction:column;gap:16px}
-body.ima-nav main{padding-bottom:104px}
+body.ima-nav main{padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))}
 h1,h2,h3{font-family:var(--display);text-transform:uppercase;letter-spacing:.03em;line-height:1.05;margin:0;text-wrap:balance}
 h1{font-size:30px}h2{font-size:21px}h3{font-size:17px}
 .eyebrow{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
@@ -163,7 +163,7 @@ td.num,th.num{text-align:right}
 .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;z-index:20;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
 .toast.bad{background:var(--bad);color:#fff}
 .sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:30;display:flex;align-items:flex-end;justify-content:center}
-.sheet>.card{width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border-radius:16px 16px 0 0;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet>.card{width:100%;max-width:560px;max-height:92vh;max-height:92dvh;overflow-y:auto;border-radius:16px 16px 0 0;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 .guide{display:flex;justify-content:space-between;gap:12px;align-items:center;border-top:1px solid var(--line);padding-top:10px;text-decoration:none;color:inherit}
 .card>.guide:first-child,h2+.guide,h3+.guide{border-top:0;padding-top:0}
 details.stavka{display:block}
@@ -212,3 +212,7 @@ details.dan-hrana summary::-webkit-details-marker{display:none}
 details.dan-hrana summary .k{font-size:13px;color:var(--muted);text-align:right}
 details.dan-hrana[open] summary b{color:var(--brand)}
 details.dan-hrana .stack>.meal:first-child{border-top:0;padding-top:0}
+/* iOS: nijedno polje ispod 16 px (inače Safari zumira stranu pri kucanju) */
+input,select,textarea{font-size:16px}
+.tabs{overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+img,svg{max-width:100%}
