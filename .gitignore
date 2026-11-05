@@ -1,0 +1,14 @@
+# Lozinke — nikad u git
+app/config.php
+# Otpremljeni PDF vodiči žive samo na serveru
+privatno/vodici/*
+!privatno/vodici/.gitkeep
+# Keš, log grešaka mejla, mejlovi iz razvoja
+kes/*
+!kes/.htaccess
+# Razvoj i testovi
+node_modules/
+testovi/rezultati/
+isporuka/
+*.log
+.DS_Store

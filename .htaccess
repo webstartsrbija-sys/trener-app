@@ -1,0 +1,37 @@
+# Tomislav Coaching — Apache (cPanel)
+Options -Indexes
+DirectoryIndex index.php
+AddDefaultCharset UTF-8
+AddType application/manifest+json .webmanifest
+AddType font/woff2 .woff2
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Samo HTTPS (cPanel AutoSSL daje besplatan sertifikat i za subdomen)
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Pregledač sme da dobije SAMO fajlove iz assets/. Sve ostalo (app/, baza/,
+  # privatno/, strane/…) ide kroz index.php, koji za nepoznate adrese vraća 404.
+  RewriteRule ^assets/ - [L]
+  RewriteRule ^index\.php$ - [L]
+  RewriteRule ^ index.php [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(css|js|woff2|png|svg)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  Header always set Strict-Transport-Security "max-age=31536000" env=HTTPS
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml application/manifest+json
+</IfModule>
+
+# Fajlovi koji nikad ne smeju da se serviraju, i kad mod_rewrite ne radi
+<FilesMatch "\.(sql|md|ini|log|sh|txt)$|^config\.php$">
+  Require all denied
+</FilesMatch>

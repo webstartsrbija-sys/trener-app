@@ -1,0 +1,40 @@
+# Uputstvo za trenera — Tomislav Coaching
+
+Adresa: **https://trener.webstartsrbija.rs**. Prijavljuješ se svojim emailom i lozinkom. Na telefonu otvori adresu u Chrome-u ili Safariju, pa izaberi **„Dodaj na početni ekran“**.
+
+## 1. Novi klijent
+1. Dole izaberi **Klijenti → + Novi klijent**.
+2. Upiši ime, email, cilj, broj treninga nedeljno, datum početka i trajanje članarine (podrazumevano 30 dana).
+3. Kod **Početni program** izaberi šablon ili ostavi prazan.
+4. Klikni **Napravi nalog**. Klijent dobija mejl sa linkom da sam postavi lozinku (link važi 48 sati).
+5. Ako mejl ne stigne: na stranici klijenta pojavi se link, pa ga **Kopiraj** i pošalji porukom. Kasnije: **Nalog → Pošalji pozivnicu ponovo**.
+
+## 2. Program
+1. Otvori klijenta, tab **Program**.
+2. **+ Dodaj trening.** Upiši naziv (npr. „Noge A“), fokus i trajanje.
+3. **+ Dodaj vežbu.** Izaberi vežbu iz baze, pa upiši zagrevanje, tempo i pauzu.
+4. Za svaku seriju upiši **kilažu, ponavljanja i RIR**. Dugmad: **+ Dodaj seriju** dodaje seriju, **✕** briše seriju, **↑ ↓** pomeraju vežbu.
+5. Dole napiši **napomenu** klijentu i klikni **Sačuvaj program**. Klijent odmah vidi izmenu.
+6. U koloni **Urađeno** vidiš šta je klijent upisao, a ispod toga njegovu napomenu i check-in (san, stres, bol…).
+7. **Ne pišeš isti program 30 puta:**
+   - **Sačuvaj kao šablon** čuva gotov program pod imenom, npr. „Početnik 3×“.
+   - **Učitaj šablon** ili **Kopiraj program od klijenta** menjaju program ovog klijenta, a zatim ga prilagodiš.
+   - Prošli treninzi u istoriji ostaju kakvi su bili.
+
+## 3. Članarina
+1. Kod klijenta otvori tab **Članarina**.
+2. **Produži 30 dana** važi od datuma isteka, a ako je već istekla, od danas. Možeš da upišeš iznos i napomenu (npr. „gotovina“). To je samo evidencija.
+3. **Ručno izaberi datum** služi za drugačiji period.
+4. Aplikacija sama šalje klijentu mejl **3 dana pre isteka** i **kad istekne**. Posle isteka klijent vidi istoriju i napredak, ali ne i program, dok ne produžiš.
+
+## 4. Svakodnevno
+- **Klijenti** su poređani po pažnji:
+  - 🔴 **crveno:** bol ili povreda u check-inu, ili istekla članarina;
+  - 🟠 **narandžasto:** nije trenirao 4+ dana, članarina ističe, ili još nije postavio lozinku;
+  - 🟢 **zeleno:** na planu je.
+- **Početna** prikazuje ko traži pažnju, kome ističe članarina i poslednje završene treninge.
+- Svako veče u **20 h** stiže ti **jedan mejl sa rezimeom**: ko je trenirao, ko je prijavio bol i kome ističe članarina.
+- **Vežbe:** dodaj YouTube link (može „unlisted“) jednom, i dugme ▶ Video se pojavljuje kod svih klijenata.
+- **Ishrana:** primeri dana i baza namirnica su zajednički. **Dnevni okvir** (kcal, P, UH, M) postavljaš svakom klijentu posebno, u tabu Ishrana kod klijenta.
+- **Vodiči:** dodaj link (video, Drive, snimak) ili PDF do 10 MB.
+- **Arhiviranje:** kad klijent prestane da dolazi, otvori **Nalog → Arhiviraj**. Ništa se ne briše, a vraća se jednim klikom.
