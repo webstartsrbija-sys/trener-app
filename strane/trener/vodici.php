@@ -80,14 +80,15 @@ if (post()) {
             $fajl = $fajl_ime = '';
             $vel = 0;
         }
+        $jez = in_array($_POST['jezik'] ?? '', ['sr', 'en'], true) ? $_POST['jezik'] : '';
         $vrednosti = [$naslov_v, unos($_POST['kategorija'] ?? '', 60), unos($_POST['opis'] ?? '', 500), $tip,
-            $tip === 'link' ? $url : '', $fajl, $fajl_ime, $vel, !empty($_POST['objavljen']) ? 1 : 0];
+            $tip === 'link' ? $url : '', $fajl, $fajl_ime, $vel, !empty($_POST['objavljen']) ? 1 : 0, $jez];
         if ($akcija === 'dodaj') {
             $red = (int)vrednost('SELECT COALESCE(MAX(redosled), 0) + 1 FROM vodici');
-            upit('INSERT INTO vodici (naslov, kategorija, opis, tip, url, fajl, fajl_ime, velicina, objavljen, redosled, kreirano)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [...$vrednosti, $red, sada()]);
+            upit('INSERT INTO vodici (naslov, kategorija, opis, tip, url, fajl, fajl_ime, velicina, objavljen, jezik, redosled, kreirano)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [...$vrednosti, $red, sada()]);
         } else {
-            upit('UPDATE vodici SET naslov = ?, kategorija = ?, opis = ?, tip = ?, url = ?, fajl = ?, fajl_ime = ?, velicina = ?, objavljen = ? WHERE id = ?',
+            upit('UPDATE vodici SET naslov = ?, kategorija = ?, opis = ?, tip = ?, url = ?, fajl = ?, fajl_ime = ?, velicina = ?, objavljen = ?, jezik = ? WHERE id = ?',
                 [...$vrednosti, $id]);
         }
         poruka('Vodič je sačuvan');
@@ -113,6 +114,9 @@ $forma = function (?array $v) use ($max_mb): void { ?>
       <label class="full">Kratak opis<input class="tin" name="opis" value="<?= e($v['opis'] ?? '') ?>" maxlength="500"></label>
       <label class="full" data-za="link">Link (YouTube, Google Drive, Zoom snimak…)<input class="tin" type="url" name="url" value="<?= e($v['url'] ?? '') ?>" placeholder="https://"></label>
       <label class="full" data-za="pdf">PDF do <?= $max_mb ?> MB<?= !empty($v['fajl']) ? ' — sada: ' . e($v['fajl_ime']) . ' (' . broj($v['velicina'] / 1048576) . ' MB)' : '' ?><input class="tin" type="file" name="pdf" accept="application/pdf,.pdf"></label>
+      <label class="full">Za koje klijente<select class="tin" name="jezik">
+        <?php foreach (['' => 'Svi klijenti', 'sr' => 'Samo klijenti na srpskom', 'en' => 'Samo klijenti na engleskom (English)'] as $jk => $jl): ?><option value="<?= $jk ?>"<?= ($v['jezik'] ?? '') === $jk ? ' selected' : '' ?>><?= $jl ?></option><?php endforeach; ?>
+      </select></label>
       <label class="full potvrda" style="flex-direction:row"><input type="checkbox" name="objavljen" value="1"<?= ($v['objavljen'] ?? 1) ? ' checked' : '' ?>> Klijenti ga vide</label>
     </div>
     <div class="row"><button class="btn primary<?= $v ? ' small' : '' ?>" name="akcija" value="<?= $v ? 'sacuvaj' : 'dodaj' ?>"><?= $v ? 'Sačuvaj' : 'Dodaj vodič' ?></button>
@@ -128,7 +132,7 @@ require KOREN . '/delovi/glava.php';
 <section class="card">
 <?php if (!$lista): ?><p class="muted" style="margin:0">Još nema vodiča.</p><?php endif; ?>
 <?php foreach ($lista as $v): ?>
-  <details class="guide stavka"><summary><div><?php if ($v['kategorija'] !== ''): ?><span class="chip"><?= e($v['kategorija']) ?></span> <?php endif; ?><?= (int)$v['objavljen'] ? '' : '<span class="chip mute">skriven</span>' ?>
+  <details class="guide stavka"><summary><div><?php if ($v['kategorija'] !== ''): ?><span class="chip"><?= e($v['kategorija']) ?></span> <?php endif; ?><?= (int)$v['objavljen'] ? '' : '<span class="chip mute">skriven</span>' ?><?= $v['jezik'] === 'en' ? ' <span class="chip">EN</span>' : ($v['jezik'] === 'sr' ? ' <span class="chip">SR</span>' : '') ?>
     <div style="font-weight:700;margin-top:4px"><?= e($v['naslov']) ?> <span class="muted" style="font-weight:500">• <?= $v['tip'] === 'pdf' ? 'PDF' : 'link' ?></span></div><div class="muted" style="font-size:14px"><?= e($v['opis']) ?></div></div><span class="link" style="margin-left:auto">Uredi</span></summary>
     <?php $forma($v); ?>
   </details>

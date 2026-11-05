@@ -40,7 +40,7 @@ function grafikon_tezine(array $proseci): string
 {
     $proseci = array_slice($proseci, -12);
     if (!$proseci) {
-        return '<p class="muted" style="margin:0">Grafikon se pojavljuje posle prvog upisa težine.</p>';
+        return '<p class="muted" style="margin:0">' . te('Grafikon se pojavljuje posle prvog upisa težine.') . '</p>';
     }
     $w = array_column($proseci, 'kg');
     $W = 320; $H = 150; $l = 34; $r = 10; $t = 12; $b = 26;
@@ -53,7 +53,7 @@ function grafikon_tezine(array $proseci): string
     foreach ($w as $i => $v) {
         $tacke[] = sprintf('%.1f,%.1f', $x($i), $y($v));
     }
-    $s = '<div class="chart"><svg viewBox="0 0 ' . $W . ' ' . $H . '" role="img" aria-label="Nedeljni prosek težine">';
+    $s = '<div class="chart"><svg viewBox="0 0 ' . $W . ' ' . $H . '" role="img" aria-label="' . te('Nedeljni prosek težine') . '">';
     foreach ([$mn, ($mn + $mx) / 2, $mx] as $v) {
         $s .= sprintf('<line x1="%d" x2="%d" y1="%.1f" y2="%.1f" stroke="var(--line)" stroke-width="1"/>', $l, $W - $r, $y($v), $y($v));
         $s .= sprintf('<text x="%d" y="%.1f" text-anchor="end" font-size="10" fill="var(--muted)">%s</text>', $l - 6, $y($v) + 4, broj($v));
@@ -64,9 +64,9 @@ function grafikon_tezine(array $proseci): string
     }
     foreach ($w as $i => $v) {
         $posl = $i === $n - 1;
-        $s .= sprintf('<circle cx="%.1f" cy="%.1f" r="%s" fill="%s" stroke="var(--brand)" stroke-width="2"><title>N%d: %s kg</title></circle>',
-            $x($i), $y($v), $posl ? '4.5' : '2.5', $posl ? 'var(--brand)' : 'var(--surface)', $proseci[$i]['n'], broj($v));
-        $s .= sprintf('<text x="%.1f" y="%d" text-anchor="middle" font-size="10" fill="var(--muted)">N%d</text>', $x($i), $H - 8, $proseci[$i]['n']);
+        $s .= sprintf('<circle cx="%.1f" cy="%.1f" r="%s" fill="%s" stroke="var(--brand)" stroke-width="2"><title>%s%d: %s kg</title></circle>',
+            $x($i), $y($v), $posl ? '4.5' : '2.5', $posl ? 'var(--brand)' : 'var(--surface)', t('N'), $proseci[$i]['n'], broj($v));
+        $s .= sprintf('<text x="%.1f" y="%d" text-anchor="middle" font-size="10" fill="var(--muted)">%s%d</text>', $x($i), $H - 8, t('N'), $proseci[$i]['n']);
     }
     return $s . '</svg></div>';
 }
@@ -84,10 +84,11 @@ function e1rm(float $kg, int $pon): float
 function tabela_1rm(int $klijent_id): array
 {
     $rez = [];
-    $sql = "SELECT s.id AS sid, s.datum, COALESCE(sv.vezba_id, 0) AS vid, sv.naziv, ss.kg, ss.pon
+    $sql = "SELECT s.id AS sid, s.datum, COALESCE(sv.vezba_id, 0) AS vid, sv.naziv, v.naziv_en, ss.kg, ss.pon
             FROM sesija_serije ss
             JOIN sesija_vezbe sv ON sv.id = ss.sesija_vezba_id
             JOIN sesije s ON s.id = sv.sesija_id
+            LEFT JOIN vezbe v ON v.id = sv.vezba_id
             WHERE s.klijent_id = ? AND s.status = 'zavrsena' AND ss.kg <> '' AND ss.pon <> ''
             ORDER BY s.datum, s.id";
     foreach (redovi($sql, [$klijent_id]) as $r) {
@@ -98,7 +99,7 @@ function tabela_1rm(int $klijent_id): array
         }
         $kljuc = $r['vid'] ?: $r['naziv'];
         $e = e1rm($kg, $pon);
-        $rez[$kljuc] ??= ['vezba' => $r['naziv'], 'prva' => $r['sid'], 'pocetni' => 0.0, 'poslednja' => $r['sid'], 'trenutni' => 0.0];
+        $rez[$kljuc] ??= ['vezba' => naziv_jezik($r), 'prva' => $r['sid'], 'pocetni' => 0.0, 'poslednja' => $r['sid'], 'trenutni' => 0.0];
         $x = &$rez[$kljuc];
         if ($r['sid'] === $x['prva']) {
             $x['pocetni'] = max($x['pocetni'], $e);

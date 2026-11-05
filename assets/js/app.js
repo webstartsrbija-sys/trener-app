@@ -4,6 +4,11 @@
   'use strict';
   var d = document;
   var csrf = d.body ? d.body.getAttribute('data-csrf') : '';
+  var loc = d.body && d.body.getAttribute('data-jezik') === 'en' ? 'en-GB' : 'sr-RS';
+  var recnik = {};
+  try { recnik = JSON.parse(d.getElementById('js-tekst').textContent); } catch (e) {}
+  // Prevod iz glava.php; %s se menja argumentom
+  function T(k, a) { var s = recnik[k] || k; return a === undefined ? s : s.replace('%s', a); }
 
   /* ---------- Tema ---------- */
   function tema(t) {
@@ -66,8 +71,8 @@
     var i = d.getElementById(b.getAttribute('data-kopiraj'));
     i.select();
     (navigator.clipboard ? navigator.clipboard.writeText(i.value) : Promise.reject()).then(
-      function () { toast('Link je kopiran'); },
-      function () { try { d.execCommand('copy'); toast('Link je kopiran'); } catch (e) {} });
+      function () { toast(T('Link je kopiran')); },
+      function () { try { d.execCommand('copy'); toast(T('Link je kopiran')); } catch (e) {} });
   });
 
   /* ---------- Upozorenje na nesačuvane izmene (trenerov program) ---------- */
@@ -102,9 +107,9 @@
       if (!prljavo) return;
       if (uToku) { ponovo = true; return; }   // jedan zahtev u isto vreme — bez duplih sesija
       uToku = true; prljavo = false;
-      javi('Čuvam…');
+      javi(T('Čuvam…'));
       fetch(forma.getAttribute('data-autosave'), { method: 'POST', body: podaci(), credentials: 'same-origin', headers: { 'X-CSRF': csrf } })
-        .then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.ok) throw new Error(j.greska || 'Greška'); return j; }); })
+        .then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.ok) throw new Error(j.greska || T('Greška')); return j; }); })
         .then(function (j) {
           // Serije su do sada imale ključ plana (p12); sada dobijaju ključ sesije (s34)
           Object.keys(j.mapa || {}).forEach(function (stari) {
@@ -115,12 +120,12 @@
             var red = forma.querySelector('[data-serija="' + stari + '"]');
             if (red) red.setAttribute('data-serija', novi);
           });
-          javi('Sačuvano u ' + j.vreme);
+          javi(T('Sačuvano u %s', j.vreme));
         })
-        .catch(function (e) { prljavo = true; javi('Nije sačuvano: ' + e.message + ' Pokušaću ponovo.', true); tajmer = setTimeout(sacuvaj, 5000); })
+        .catch(function (e) { prljavo = true; javi(T('Nije sačuvano: %s Pokušaću ponovo.', e.message), true); tajmer = setTimeout(sacuvaj, 5000); })
         .then(function () { uToku = false; if (ponovo) { ponovo = false; sacuvaj(); } });
     }
-    function zakazi() { prljavo = true; javi('Ima nesačuvanih izmena…'); clearTimeout(tajmer); tajmer = setTimeout(sacuvaj, 800); }
+    function zakazi() { prljavo = true; javi(T('Ima nesačuvanih izmena…')); clearTimeout(tajmer); tajmer = setTimeout(sacuvaj, 800); }
 
     forma.addEventListener('input', zakazi);
     forma.addEventListener('click', function (ev) {
@@ -195,7 +200,7 @@
       var sacuvano = JSON.parse(localStorage.getItem('kalkulator') || '{}');
       Object.keys(sacuvano).forEach(function (k) { if (kal.elements[k] && k !== 'tez') kal.elements[k].value = sacuvano[k]; });
     } catch (e) {}
-    var fmt = function (n) { return Math.round(n).toLocaleString('sr-RS'); };
+    var fmt = function (n) { return Math.round(n).toLocaleString(loc); };
     var racunaj = function () {
       var v = function (n) { return parseFloat(String(kal.elements[n].value).replace(',', '.')) || 0; };
       var pol = kal.elements.pol.value, god = v('god'), vis = v('vis'), tez = v('tez'), akt = v('akt'), cilj = parseFloat(kal.elements.cilj.value) || 0;

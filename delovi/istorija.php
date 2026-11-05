@@ -52,10 +52,10 @@ $status = function (string $x) use ($sesije, $planirani_dani, $danas, $u_opsegu)
 $chip = function (string $x) use ($status, $sesije): string {
     return match ($status($x)) {
         'done'  => implode(' ', array_map(fn($s) => '<span class="chip ok">✓ ' . e($s['naziv']) . '</span>', $sesije[$x])),
-        'miss'  => '<span class="chip bad">Propušten</span>',
-        'today' => '<span class="chip warn">Danas</span>',
-        'plan'  => '<span class="chip">Trening • planiran</span>',
-        default => '<span class="chip mute">Odmor</span>',
+        'miss'  => '<span class="chip bad">' . te('Propušten') . '</span>',
+        'today' => '<span class="chip warn">' . te('Danas') . '</span>',
+        'plan'  => '<span class="chip">' . te('Trening • planiran') . '</span>',
+        default => '<span class="chip mute">' . te('Odmor') . '</span>',
     };
 };
 $zbir = function (string $a, string $b) use ($k, $hrana, $tez, $zavrseni): array {
@@ -70,9 +70,9 @@ $zbir = function (string $a, string $b) use ($k, $hrana, $tez, $zavrseni): array
     ];
 };
 $statistika = function (array $a, string $treca = 'kg prosek', ?string $treca_vrednost = null): string {
-    return '<div class="stats"><div class="stat"><b>' . $a['dn'] . '/' . $a['pl'] . '</b><span>treninga</span></div>'
-        . '<div class="stat"><b>' . ($a['kc'] ?: '—') . '</b><span>prosek kcal</span></div>'
-        . '<div class="stat"><b>' . ($treca_vrednost ?? ($a['w'] !== null ? broj($a['w']) : '—')) . '</b><span>' . $treca . '</span></div></div>';
+    return '<div class="stats"><div class="stat"><b>' . $a['dn'] . '/' . $a['pl'] . '</b><span>' . te('treninga') . '</span></div>'
+        . '<div class="stat"><b>' . ($a['kc'] ?: '—') . '</b><span>' . te('prosek kcal') . '</span></div>'
+        . '<div class="stat"><b>' . ($treca_vrednost ?? ($a['w'] !== null ? broj($a['w']) : '—')) . '</b><span>' . te($treca) . '</span></div></div>';
 };
 $traka = function (string $x) use ($hrana, $okv): string {
     if (empty($hrana[$x]) || !$okv) {
@@ -84,15 +84,16 @@ $traka = function (string $x) use ($hrana, $okv): string {
 
 // Navigacija napred/nazad
 if ($v === 'mesec') {
-    $naslov_perioda = mb_convert_case(MESECI[(int)date('n', strtotime($d)) - 1], MB_CASE_TITLE) . ' ' . date('Y', strtotime($d));
+    $naslov_perioda = mb_convert_case(mesec((int)date('n', strtotime($d))), MB_CASE_TITLE) . ' ' . date('Y', strtotime($d));
     $preth = date('Y-m-t', strtotime($od . ' -1 day'));
     $sled = date('Y-m-01', strtotime($do . ' +1 day'));
     $na_pocetku = $od <= $pocetak;
     $na_kraju = $do >= $kraj;
     $danas_vidljiv = $danas >= $od && $danas <= $do;
 } elseif ($v === 'nedelja') {
-    $naslov_perioda = (int)date('j', strtotime($od)) . '. ' . mb_substr(MESECI[(int)date('n', strtotime($od)) - 1], 0, 3) . ' – '
-        . (int)date('j', strtotime($do)) . '. ' . mb_substr(MESECI[(int)date('n', strtotime($do)) - 1], 0, 3);
+    $tacka = jezik() === 'en' ? '' : '.';
+    $naslov_perioda = (int)date('j', strtotime($od)) . $tacka . ' ' . mesec_kratko((int)date('n', strtotime($od))) . ' – '
+        . (int)date('j', strtotime($do)) . $tacka . ' ' . mesec_kratko((int)date('n', strtotime($do)));
     $preth = dan_plus($od, -7);
     $sled = dan_plus($od, 7);
     $na_pocetku = $od <= $pocetak;
@@ -107,17 +108,17 @@ if ($v === 'mesec') {
     $danas_vidljiv = $d === $danas;
 }
 ?>
-<div class="tabs" role="group" aria-label="Prikaz istorije">
+<div class="tabs" role="group" aria-label="<?= te('Prikaz istorije') ?>">
 <?php foreach (['dan' => 'Dan', 'nedelja' => 'Nedelja', 'mesec' => 'Mesec'] as $kk => $l): ?>
-  <a href="<?= $link($kk, $d) ?>" aria-pressed="<?= $v === $kk ? 'true' : 'false' ?>"><?= $l ?></a>
+  <a href="<?= $link($kk, $d) ?>" aria-pressed="<?= $v === $kk ? 'true' : 'false' ?>"><?= te($l) ?></a>
 <?php endforeach; ?>
 </div>
 <div class="hnav">
-  <?php if ($na_pocetku): ?><span class="btn small" aria-disabled="true">‹</span><?php else: ?><a class="btn small" href="<?= $link($v, max($pocetak, $preth)) ?>" aria-label="Prethodno">‹</a><?php endif; ?>
+  <?php if ($na_pocetku): ?><span class="btn small" aria-disabled="true">‹</span><?php else: ?><a class="btn small" href="<?= $link($v, max($pocetak, $preth)) ?>" aria-label="<?= te('Prethodno') ?>">‹</a><?php endif; ?>
   <b><?= e($naslov_perioda) ?></b>
-  <?php if ($na_kraju): ?><span class="btn small" aria-disabled="true">›</span><?php else: ?><a class="btn small" href="<?= $link($v, min($kraj, $sled)) ?>" aria-label="Sledeće">›</a><?php endif; ?>
+  <?php if ($na_kraju): ?><span class="btn small" aria-disabled="true">›</span><?php else: ?><a class="btn small" href="<?= $link($v, min($kraj, $sled)) ?>" aria-label="<?= te('Sledeće') ?>">›</a><?php endif; ?>
 </div>
-<?php if (!$danas_vidljiv): ?><a class="link" href="<?= $link($v, $danas) ?>" style="align-self:center">Vrati na danas</a><?php endif; ?>
+<?php if (!$danas_vidljiv): ?><a class="link" href="<?= $link($v, $danas) ?>" style="align-self:center"><?= te('Vrati na danas') ?></a><?php endif; ?>
 
 <?php if ($v === 'mesec'):
     $a = $zbir($od, $do);
@@ -125,13 +126,13 @@ if ($v === 'mesec') {
 ?>
 <section class="card"><?= $statistika($a, $promena !== null ? 'kg u mesecu' : 'kg prosek', $promena) ?>
   <div class="cal">
-    <?php foreach (DANI_KRATKO as $dn): ?><span class="h"><?= $dn ?></span><?php endforeach; ?>
+    <?php for ($i = 1; $i <= 7; $i++): ?><span class="h"><?= e(dan_kratko($i)) ?></span><?php endfor; ?>
     <?php for ($i = 1; $i < dan_u_nedelji($od); $i++): ?><span></span><?php endfor; ?>
     <?php for ($x = $od; $x <= $do; $x = dan_plus($x, 1)):
         $st = $status($x);
         $dot = ['done' => 'done', 'miss' => 'miss', 'today' => 'zakazan', 'plan' => 'zakazan'][$st] ?? 'none';
         $kb = !empty($hrana[$x]) ? (kcal_u_okviru($hrana[$x]['kcal'], $okv) ? 'ok' : 'off') : '';
-        $oznaka = (int)date('j', strtotime($x)) . '. ' . MESECI_GEN[(int)date('n', strtotime($x)) - 1];
+        $oznaka = datum_lep($x);
     ?>
       <?php if ($st === 'van'): ?>
       <span class="day" aria-disabled="true"><span><?= (int)date('j', strtotime($x)) ?></span><i class="dot none"></i><i class="kb"></i></span>
@@ -140,53 +141,53 @@ if ($v === 'mesec') {
       <?php endif; ?>
     <?php endfor; ?>
   </div>
-  <div class="legend"><span><i class="dot done"></i>Trening urađen</span><span><i class="dot miss"></i>Propušten</span><span><i class="dot zakazan"></i>Planiran</span><span><i class="kb ok" style="width:16px"></i>Kalorije u okviru</span><span><i class="kb off" style="width:16px"></i>Van okvira</span></div>
-  <p class="muted" style="margin:0;font-size:13px">Dodirni dan za detalje.</p>
+  <div class="legend"><span><i class="dot done"></i><?= te('Trening urađen') ?></span><span><i class="dot miss"></i><?= te('Propušten') ?></span><span><i class="dot zakazan"></i><?= te('Planiran') ?></span><span><i class="kb ok" style="width:16px"></i><?= te('Kalorije u okviru') ?></span><span><i class="kb off" style="width:16px"></i><?= te('Van okvira') ?></span></div>
+  <p class="muted" style="margin:0;font-size:13px"><?= te('Dodirni dan za detalje.') ?></p>
 </section>
-<section class="card"><h3>Po nedeljama</h3>
+<section class="card"><h3><?= te('Po nedeljama') ?></h3>
 <?php for ($w = ponedeljak($od); $w <= $do; $w = dan_plus($w, 7)):
     $we = dan_plus($w, 6);
     if ($w > $danas || $we < $pocetak) { continue; }
     $b = $zbir($w, $we);
 ?>
-  <a class="wd" href="<?= $link('nedelja', $w) ?>"><span class="muted" style="font-size:13px"><?= (int)date('j', strtotime($w)) ?>.–<?= (int)date('j', strtotime($we)) ?>. <?= mb_substr(MESECI[(int)date('n', strtotime($we)) - 1], 0, 3) ?></span><span><b><?= $b['dn'] ?>/<?= $b['pl'] ?></b> treninga • <?= $b['kc'] ?: '—' ?> kcal</span><span class="muted"><?= $b['w'] !== null ? broj($b['w']) . ' kg' : '' ?></span></a>
+  <a class="wd" href="<?= $link('nedelja', $w) ?>"><span class="muted" style="font-size:13px"><?= (int)date('j', strtotime($w)) ?><?= jezik() === 'en' ? '' : '.' ?>–<?= (int)date('j', strtotime($we)) ?><?= jezik() === 'en' ? '' : '.' ?> <?= e(mesec_kratko((int)date('n', strtotime($we)))) ?></span><span><b><?= $b['dn'] ?>/<?= $b['pl'] ?></b> <?= te('treninga') ?> • <?= $b['kc'] ?: '—' ?> kcal</span><span class="muted"><?= $b['w'] !== null ? broj($b['w']) . ' kg' : '' ?></span></a>
 <?php endfor; ?>
 </section>
 
 <?php elseif ($v === 'nedelja'): $a = $zbir($od, $do); ?>
 <section class="card"><?= $statistika($a) ?><div>
 <?php for ($x = $od; $x <= $do; $x = dan_plus($x, 1)): $st = $status($x); ?>
-  <<?= $st === 'van' ? 'span aria-disabled="true"' : 'a href="' . $link('dan', $x) . '"' ?> class="wd"><span><b><?= DANI_KRATKO[dan_u_nedelji($x)] ?></b><br><span class="muted" style="font-size:13px"><?= date('j.n.', strtotime($x)) ?></span></span>
+  <<?= $st === 'van' ? 'span aria-disabled="true"' : 'a href="' . $link('dan', $x) . '"' ?> class="wd"><span><b><?= e(dan_kratko(dan_u_nedelji($x))) ?></b><br><span class="muted" style="font-size:13px"><?= date(jezik() === 'en' ? 'j/n' : 'j.n.', strtotime($x)) ?></span></span>
   <span class="stack" style="gap:4px"><?= $st === 'van' ? '<span class="muted">—</span>' : $chip($x) ?><?= $traka($x) ?></span>
-  <span class="muted" style="font-size:13px;text-align:right"><?= !empty($hrana[$x]) ? (int)round($hrana[$x]['kcal']) . ' kcal' : ($st !== 'van' && $x <= $danas ? 'nije upisano' : '') ?><?= isset($tez[$x]) ? '<br>' . broj($tez[$x]) . ' kg' : '' ?></span></<?= $st === 'van' ? 'span' : 'a' ?>>
+  <span class="muted" style="font-size:13px;text-align:right"><?= !empty($hrana[$x]) ? (int)round($hrana[$x]['kcal']) . ' kcal' : ($st !== 'van' && $x <= $danas ? te('nije upisano') : '') ?><?= isset($tez[$x]) ? '<br>' . broj($tez[$x]) . ' kg' : '' ?></span></<?= $st === 'van' ? 'span' : 'a' ?>>
 <?php endfor; ?>
 </div></section>
 
 <?php else: $st = $status($d); $fo = $hrana[$d] ?? null; ?>
-<section class="card"><div class="row between"><h2>Trening</h2><?= $chip($d) ?></div>
+<section class="card"><div class="row between"><h2><?= te('Trening') ?></h2><?= $chip($d) ?></div>
 <?php if ($st === 'done'):
     foreach ($sesije[$d] as $ss): $pun = sesija_puna((int)$ss['id']); ?>
-  <span class="muted"><?= e($pun['naziv']) ?><?= $pun['fokus'] !== '' ? ' • ' . e($pun['fokus']) : '' ?> • završen u <?= e(vreme_kratko($pun['zavrseno_u'])) ?></span>
+  <span class="muted"><?= e($pun['naziv']) ?><?= $pun['fokus'] !== '' ? ' • ' . e($pun['fokus']) : '' ?> • <?= te('završen u %s', vreme_kratko($pun['zavrseno_u'])) ?></span>
   <?php foreach ($pun['vezbe'] as $vz): ?>
-  <div class="meal"><b><?= e($vz['naziv']) ?></b><div class="k" style="color:var(--ink)"><?= e(serije_kratko($vz['serije'])) ?></div></div>
+  <div class="meal"><b><?= e(naziv_jezik($vz)) ?></b><div class="k" style="color:var(--ink)"><?= e(serije_kratko($vz['serije'])) ?></div></div>
   <?php endforeach; ?>
   <?= checkin_chipovi($pun['checkin']) ?>
-  <?php if (trim((string)$pun['napomena_klijenta']) !== ''): ?><div class="done-view"><b>Napomena klijenta:</b> <?= e_redovi($pun['napomena_klijenta']) ?></div><?php endif; ?>
+  <?php if (trim((string)$pun['napomena_klijenta']) !== ''): ?><div class="done-view"><b><?= te('Napomena klijenta:') ?></b> <?= e_redovi($pun['napomena_klijenta']) ?></div><?php endif; ?>
 <?php endforeach;
 elseif ($st === 'today' || $st === 'plan'): ?>
-  <p class="muted" style="margin:0">Zakazan je trening za ovaj dan.</p>
+  <p class="muted" style="margin:0"><?= te('Zakazan je trening za ovaj dan.') ?></p>
 <?php elseif ($st === 'miss'): ?>
-  <p class="muted" style="margin:0">Trening nije upisan.</p>
+  <p class="muted" style="margin:0"><?= te('Trening nije upisan.') ?></p>
 <?php else: ?>
-  <p class="muted" style="margin:0">Dan za odmor.</p>
+  <p class="muted" style="margin:0"><?= te('Dan za odmor.') ?></p>
 <?php endif; ?>
 </section>
-<section class="card"><div class="row between"><h2>Ishrana</h2><?= $fo && $okv ? '<span class="chip ' . (kcal_u_okviru($fo['kcal'], $okv) ? 'ok' : 'warn') . '">' . (int)round($fo['kcal']) . ' / ' . $okv['kcal'] . ' kcal</span>' : '' ?></div>
+<section class="card"><div class="row between"><h2><?= te('Ishrana') ?></h2><?= $fo && $okv ? '<span class="chip ' . (kcal_u_okviru($fo['kcal'], $okv) ? 'ok' : 'warn') . '">' . (int)round($fo['kcal']) . ' / ' . $okv['kcal'] . ' kcal</span>' : '' ?></div>
 <?php if ($fo && $okv): ?><?= trake_ostalo($fo, $okv, false) ?>
 <?php elseif ($fo): ?><?= makro_kutija($fo) ?>
 <?php endif; ?>
-<?php if ($fo): ?><div class="stack" style="gap:10px;border-top:1px solid var(--line);padding-top:10px"><span class="eyebrow">Šta je pojedeno</span><?= spisak_hrane(dnevnik($k['id'], $d)) ?></div>
-<?php else: ?><p class="muted" style="margin:0">Ishrana za ovaj dan nije upisana.</p><?php endif; ?>
+<?php if ($fo): ?><div class="stack" style="gap:10px;border-top:1px solid var(--line);padding-top:10px"><span class="eyebrow"><?= te('Šta je pojedeno') ?></span><?= spisak_hrane(dnevnik($k['id'], $d)) ?></div>
+<?php else: ?><p class="muted" style="margin:0"><?= te('Ishrana za ovaj dan nije upisana.') ?></p><?php endif; ?>
 </section>
-<section class="card"><div class="row between"><h2>Težina</h2><b><?= isset($tez[$d]) ? broj($tez[$d]) . ' kg' : '<span class="muted">nije upisana</span>' ?></b></div></section>
+<section class="card"><div class="row between"><h2><?= te('Težina') ?></h2><b><?= isset($tez[$d]) ? broj($tez[$d]) . ' kg' : '<span class="muted">' . te('nije upisana') . '</span>' ?></b></div></section>
 <?php endif;

@@ -9,14 +9,15 @@ if (post()) {
         case 'nam_dodaj':
         case 'nam_sacuvaj':
             $naziv = unos($_POST['naziv'] ?? '', 120);
+            $naziv_en = unos($_POST['naziv_en'] ?? '', 120);
             if ($naziv === '' || vrednost('SELECT 1 FROM namirnice WHERE naziv = ? AND id <> ?', [$naziv, $akcija === 'nam_sacuvaj' ? $id : 0])) {
                 poruka($naziv === '' ? 'Upiši naziv namirnice.' : 'Namirnica sa tim nazivom već postoji.', 'greska');
                 preusmeri('/trener/ishrana?tab=namirnice');
             }
             if ($akcija === 'nam_dodaj') {
-                upit('INSERT INTO namirnice (naziv, kcal, p, uh, m) VALUES (?, ?, ?, ?, ?)', [$naziv, $br('kcal'), $br('p'), $br('uh'), $br('m')]);
+                upit('INSERT INTO namirnice (naziv, naziv_en, kcal, p, uh, m) VALUES (?, ?, ?, ?, ?, ?)', [$naziv, $naziv_en, $br('kcal'), $br('p'), $br('uh'), $br('m')]);
             } else {
-                upit('UPDATE namirnice SET naziv = ?, kcal = ?, p = ?, uh = ?, m = ? WHERE id = ?', [$naziv, $br('kcal'), $br('p'), $br('uh'), $br('m'), $id]);
+                upit('UPDATE namirnice SET naziv = ?, naziv_en = ?, kcal = ?, p = ?, uh = ?, m = ? WHERE id = ?', [$naziv, $naziv_en, $br('kcal'), $br('p'), $br('uh'), $br('m'), $id]);
             }
             poruka('Namirnica je sačuvana');
             preusmeri('/trener/ishrana?tab=namirnice');
@@ -199,6 +200,7 @@ require KOREN . '/delovi/glava.php';
 <form class="card" method="post"><?= csrf_polje() ?><h3>Nova namirnica (vrednosti na 100 g)</h3>
   <div class="form">
     <label class="full">Naziv<input class="tin" name="naziv" required maxlength="120" placeholder="npr. Ćuretina (sirova)"></label>
+    <label class="full">Naziv na engleskom (za strane klijente)<input class="tin" name="naziv_en" maxlength="120" placeholder="npr. Turkey (raw)"></label>
     <?php foreach (['kcal' => 'kcal', 'p' => 'Protein g', 'uh' => 'UH g', 'm' => 'Masti g'] as $kk => $l): ?><label><?= $l ?><input class="tin" name="<?= $kk ?>" inputmode="decimal" required></label><?php endforeach; ?>
   </div>
   <button class="btn primary" name="akcija" value="nam_dodaj">Dodaj</button>
@@ -208,6 +210,7 @@ require KOREN . '/delovi/glava.php';
   <details class="guide stavka"><summary><b><?= e($n['naziv']) ?></b><span class="muted" style="margin-left:auto;font-size:13px;text-align:right"><?= broj($n['kcal'], 0) ?> kcal • P <?= broj($n['p']) ?> • UH <?= broj($n['uh']) ?> • M <?= broj($n['m']) ?></span></summary>
     <form method="post" class="stack" style="padding-top:10px"><?= csrf_polje() ?><input type="hidden" name="id" value="<?= (int)$n['id'] ?>">
       <div class="form"><label class="full">Naziv<input class="tin" name="naziv" value="<?= e($n['naziv']) ?>" required maxlength="120"></label>
+      <label class="full">Naziv na engleskom<input class="tin" name="naziv_en" value="<?= e($n['naziv_en']) ?>" maxlength="120"></label>
       <?php foreach (['kcal' => 'kcal', 'p' => 'Protein g', 'uh' => 'UH g', 'm' => 'Masti g'] as $kk => $l): ?><label><?= $l ?><input class="tin" name="<?= $kk ?>" inputmode="decimal" value="<?= e(broj_polje($n[$kk])) ?>"></label><?php endforeach; ?></div>
       <div class="row"><button class="btn primary small" name="akcija" value="nam_sacuvaj">Sačuvaj</button><button class="link" name="akcija" value="nam_obrisi" formnovalidate data-potvrdi="Obrisati namirnicu?" style="color:var(--bad)">Obriši</button></div>
     </form>

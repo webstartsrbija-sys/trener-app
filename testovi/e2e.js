@@ -33,8 +33,8 @@ function ok(uslov, opis) {
 
 const PHP_GRESKA = /(Fatal error|Warning:|Notice:|Deprecated:|Parse error|Uncaught|Stack trace)/;
 
-async function novaStrana(browser, sirina) {
-  const ctx = await browser.newContext({ viewport: { width: sirina, height: sirina < 500 ? 844 : 900 }, deviceScaleFactor: 1 });
+async function novaStrana(browser, sirina, locale = 'sr-RS') {
+  const ctx = await browser.newContext({ viewport: { width: sirina, height: sirina < 500 ? 844 : 900 }, deviceScaleFactor: 1, locale });
   const p = await ctx.newPage();
   p.on('pageerror', (e) => greske.push(`JS greška (${sirina}px) ${p.url()}: ${e.message}`));
   // Namerni 403/404/419 u testu izolacije nisu greške strane
@@ -346,6 +346,64 @@ async function tok(browser, sirina) {
   }
   await proveriStranu(T.p, sirina, 'trener-nalog');
   ok(await T.p.isVisible('a.meni-stavka:has-text("Promeni lozinku")') || (await T.p.$('a.meni-stavka[href="/nalog"]')) !== null, 'meni naloga ima "Promeni lozinku"');
+
+  /* ---- 7. Engleski za strane klijente ---- */
+  const john = { ime: 'John Test ' + sirina, email: `john.${oznaka}@primer.rs`, lozinka: 'john-password-1' };
+  await T.p.goto(BAZA + '/trener/klijenti');
+  await T.p.click('button:has-text("+ Novi klijent")');
+  await T.p.fill('#novi-klijent input[name=ime]', john.ime);
+  await T.p.fill('#novi-klijent input[name=email]', john.email);
+  await T.p.selectOption('#novi-klijent select[name=jezik]', 'en');
+  const sab = await T.p.$$eval('#novi-klijent select[name=sablon_id] option', (x) => x.map((y) => y.value));
+  await T.p.selectOption('#novi-klijent select[name=sablon_id]', sab[1]);
+  await Promise.all([T.p.waitForNavigation(), T.p.click('#novi-klijent button:has-text("Napravi nalog")')]);
+  ok(await T.p.isVisible('text=Mejl je poslat'), 'trener je napravio klijenta na engleskom (i dalje vidi srpski)');
+  const jm = poslednjiMejl(john.email);
+  ok(jm && jm.includes('has created your account') && jm.includes('Set your password'), 'pozivnica je na engleskom');
+  const jLink = (jm.match(/https?:\/\/\S+\/lozinka\?t=[a-f0-9]{64}/) || [])[0];
+  // Strani klijent: pregledač na engleskom (en-US)
+  const J = await novaStrana(browser, sirina, 'en-US');
+  await J.p.goto(jLink);
+  ok((await J.p.textContent('main')).includes('Choose a password for the account'), 'strana za lozinku je na engleskom');
+  await J.p.fill('input[name=lozinka]', john.lozinka);
+  await J.p.fill('input[name=lozinka2]', john.lozinka);
+  await Promise.all([J.p.waitForNavigation(), J.p.click('button:has-text("Save password")')]);
+  ok(await J.p.isVisible('text=Welcome! Your password has been set.'), 'poruka posle lozinke je na engleskom');
+  const strane = [['/trening', ['Finish workout', 'How are you today?', 'Squat', 'Warm-up:']], ['/ishrana?tab=dan', ['Build your day', 'What you have left', 'Chicken breast (raw)']],
+    ['/ishrana?tab=kalk', ['Calorie calculator', 'Basal metabolic rate']], ['/istorija?v=mesec', ['Workout done', 'By week', 'Mon']], ['/istorija?v=dan', ['Rest day.', 'Weight']],
+    ['/napredak', ['Weigh in every morning', 'Strength • estimated 1RM']], ['/vodici', ['Guides']], ['/nalog', ['Profile photo', 'Change password']]];
+  for (const [u, reci] of strane) {
+    await J.p.goto(BAZA + u);
+    // Bez sadržaja koji upisuje trener (kategorije vodiča, nazivi treninga, napomene)
+    const tx = await J.p.evaluate(() => { const b = document.body.cloneNode(true); b.querySelectorAll('.guide > div, .note-t, script').forEach((x) => x.remove()); return b.textContent; });
+    const fali = reci.filter((r) => !tx.includes(r));
+    ok(fali.length === 0, `${u} je na engleskom` + (fali.length ? ' (fali: ' + fali.join(', ') + ')' : ''));
+    // Interfejs ne sme da ima srpske reči (sadržaj koji piše trener — nazivi treninga, napomene — može)
+    const srpski = ['Sačuvaj', 'Završi', 'Dodaj', 'Ishrana', 'Istorija', 'Napredak', 'Vodiči', 'Odjavi', 'nedelja', 'Kalorije', 'Težina'].filter((r) => tx.includes(r));
+    ok(srpski.length === 0, `${u}: bez srpskih reči u interfejsu` + (srpski.length ? ' (' + srpski.join(', ') + ')' : ''));
+    await proveriStranu(J.p, sirina, 'en' + u.replace(/[/?=&]/g, '-'));
+  }
+  // Autosave poruka na engleskom
+  await J.p.goto(BAZA + '/trening');
+  await J.p.locator('input[name$="[kg]"]').first().fill('40');
+  await J.p.waitForFunction(() => /Saved at/.test(document.querySelector('[data-autosave-status]').textContent), null, { timeout: 8000 });
+  ok(true, 'autosave poruka je na engleskom ("Saved at")');
+  // Dugme SR prebacuje na srpski i pamti izbor
+  await Promise.all([J.p.waitForNavigation(), J.p.click('button.jezik')]);
+  ok((await J.p.textContent('main')).includes('Završi trening'), 'dugme SR prebacuje na srpski');
+  await Promise.all([J.p.waitForNavigation(), J.p.click('button.jezik')]);
+  ok((await J.p.textContent('main')).includes('Finish workout'), 'dugme EN vraća engleski');
+  await J.ctx.close();
+  // Trener vidi istog klijenta na srpskom
+  await T.p.goto(BAZA + '/trener/klijenti');
+  ok((await T.p.locator('a.client', { hasText: john.ime }).textContent()).includes('EN'), 'trener vidi oznaku EN kod klijenta');
+  // Prijava za goste: dugme EN radi i bez naloga
+  const G = await novaStrana(browser, sirina);
+  await G.p.goto(BAZA + '/prijava');
+  ok(await G.p.isVisible('button:has-text("Prijavi se")'), 'prijava je na srpskom za srpski pregledač');
+  await Promise.all([G.p.waitForNavigation(), G.p.click('a.jezik')]);
+  ok(await G.p.isVisible('button:has-text("Sign in")'), 'dugme EN na prijavi prebacuje na engleski');
+  await G.ctx.close();
 
   await T.ctx.close();
   await K.ctx.close();

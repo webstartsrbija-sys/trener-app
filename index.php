@@ -41,6 +41,7 @@ $rute = [
     '#^/manifest\.webmanifest$#'     => 'strane/javno/manifest.php',
     '#^/vodic/(\d+)$#'               => 'strane/vodic-fajl.php',
     '#^/nalog$#'                     => 'strane/nalog.php',
+    '#^/jezik$#'                     => 'strane/javno/jezik.php',
     '#^/slika/(\d+)$#'               => 'strane/slika.php',
 
     '#^/trening$#'                   => 'strane/klijent/trening.php',

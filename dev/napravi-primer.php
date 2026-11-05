@@ -30,29 +30,35 @@ $vezbe = ['Čučanj' => 'Grudi gore, kolena prate prste, spust do paralele.', 'B
     'Lateralno letenje' => 'Kontrolisano, bez zamaha, laktovi blago savijeni.', 'Bugarski čučanj' => 'Prednja noga radi, trup blago napred.',
     'Potisak iznad glave' => 'Stomak i gluteus stegnuti, glava prolazi kroz ruke na vrhu.', 'Pregib za biceps' => 'Laktovi uz telo, spuštanje sporo.',
     'Ekstenzija za triceps' => 'Laktovi mirni, puna ekstenzija.', 'Leg curl' => 'Kukovi pritisnuti uz klupu, polako nazad.'];
+$vezbe_en = ['Čučanj' => 'Squat', 'Bench press' => 'Bench press', 'Rumunsko mrtvo' => 'Romanian deadlift', 'Lat mašina' => 'Lat pulldown', 'Veslanje sajla' => 'Seated cable row',
+    'Hip thrust' => 'Hip thrust', 'Lateralno letenje' => 'Lateral raise', 'Bugarski čučanj' => 'Bulgarian split squat', 'Potisak iznad glave' => 'Overhead press',
+    'Pregib za biceps' => 'Biceps curl', 'Ekstenzija za triceps' => 'Triceps extension', 'Leg curl' => 'Leg curl'];
 $vid = [];
 $r = [];
 $i = 0;
 foreach ($vezbe as $n => $t) {
     $vid[$n] = ++$i;
-    $r[] = [$i, $q($n), "''", $q($t), 1, 'NOW()'];
+    $r[] = [$i, $q($n), $q($vezbe_en[$n]), "''", $q($t), 1, 'NOW()'];
 }
 $out[] = "-- =============================================================================\n-- Tomislav Coaching — PRIMER PODATAKA (samo za probu i prikaz!)\n--\n-- Uvoziti POSLE shema.sql, u praznu bazu. Datumi su relativni: primer uvek\n-- izgleda kao da je trener počeo pre par meseci.\n--\n-- Klijenti iz primera se prijavljuju lozinkom: proba1234\n-- (ana@primer.rs, nikola@primer.rs, milica@primer.rs, stefan@primer.rs)\n-- U PRODUKCIJI: ne uvoziti, ili posle uvoza arhivirati ove klijente.\n-- Generisano skriptom dev/napravi-primer.php.\n-- =============================================================================\n\nSET NAMES utf8mb4;\nSET @pon := CURDATE() - INTERVAL WEEKDAY(CURDATE()) DAY;\nSET @lozinka := " . $q(password_hash('proba1234', PASSWORD_DEFAULT)) . ";\n";
 $out[] = '-- Baza vežbi (YouTube link trener upisuje u aplikaciji; dok ga nema, dugme Video traži tehniku na YouTube-u)';
-$ins('vezbe', ['id', 'naziv', 'youtube', 'tehnika', 'aktivna', 'kreirano'], $r);
+$ins('vezbe', ['id', 'naziv', 'naziv_en', 'youtube', 'tehnika', 'aktivna', 'kreirano'], $r);
 
 /* ---------------- Namirnice (na 100 g) ---------------- */
 $hrana = ['Pileća prsa (sirova)' => [120, 23, 0, 2.6], 'Junetina 5% (sirova)' => [137, 21, 0, 5], 'Losos (sirov)' => [208, 20, 0, 13], 'Tunjevina u vodi' => [116, 26, 0, 1],
     'Jaja' => [143, 12.6, 0.7, 9.5], 'Grčki jogurt 2%' => [73, 10, 4, 2], 'Posni sir' => [98, 11, 3.4, 4.3], 'Ovsene pahuljice' => [370, 13, 60, 7],
     'Pirinač (sirov)' => [360, 7, 79, 0.6], 'Krompir (sirov)' => [77, 2, 17, 0.1], 'Integralni hleb' => [250, 10, 43, 3.5], 'Banana' => [89, 1.1, 23, 0.3],
     'Jabuka' => [52, 0.3, 14, 0.2], 'Maslinovo ulje' => [884, 0, 0, 100], 'Kikiriki puter' => [588, 25, 20, 50]];
+$hrana_en = ['Pileća prsa (sirova)' => 'Chicken breast (raw)', 'Junetina 5% (sirova)' => 'Lean beef 5% (raw)', 'Losos (sirov)' => 'Salmon (raw)', 'Tunjevina u vodi' => 'Tuna in water',
+    'Jaja' => 'Eggs', 'Grčki jogurt 2%' => 'Greek yogurt 2%', 'Posni sir' => 'Cottage cheese', 'Ovsene pahuljice' => 'Rolled oats', 'Pirinač (sirov)' => 'Rice (raw)',
+    'Krompir (sirov)' => 'Potatoes (raw)', 'Integralni hleb' => 'Wholegrain bread', 'Banana' => 'Banana', 'Jabuka' => 'Apple', 'Maslinovo ulje' => 'Olive oil', 'Kikiriki puter' => 'Peanut butter'];
 $r = [];
 $i = 0;
 foreach ($hrana as $n => $v) {
-    $r[] = [++$i, $q($n), ...$v];
+    $r[] = [++$i, $q($n), $q($hrana_en[$n]), ...$v];
 }
 $out[] = '-- Namirnice';
-$ins('namirnice', ['id', 'naziv', 'kcal', 'p', 'uh', 'm'], $r);
+$ins('namirnice', ['id', 'naziv', 'naziv_en', 'kcal', 'p', 'uh', 'm'], $r);
 
 /* ---------------- Primeri ishrane ---------------- */
 $primeri = [

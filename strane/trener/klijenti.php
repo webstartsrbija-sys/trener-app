@@ -27,6 +27,7 @@ if (post()) {
         $r = napravi_klijenta([
             'ime' => $ime, 'email' => $email, 'cilj' => $cilj, 'datum_pocetka' => $pocetak, 'treninga_nedeljno' => $tn,
             'clanarina_do' => $dana > 0 ? dan_plus(danas(), $dana) : null, 'sablon_id' => $sablon,
+            'jezik' => ($_POST['jezik'] ?? '') === 'en' ? 'en' : 'sr',
         ]);
         require_once KOREN . '/app/mejl.php';
         $poslat = mejl_pozivnica($r['korisnik'], $r['token']);
@@ -59,7 +60,7 @@ $need = count(array_filter($lista, fn($k) => $k['signal']['nivo'] < 2));
     <?= avatar($k['korisnik_id'], $k['ime'], $k['slika']) ?>
     <div class="info"><div class="row between"><span class="name"><?= e($k['ime']) ?></span><span class="muted" style="font-size:13px">Ned. <?= nedelja_programa($k) ?></span></div>
       <div class="muted" style="font-size:14px"><?= e($k['cilj'] ?: '—') ?> • doslednost <?= $k['doslednost'] !== null ? $k['doslednost'] . '%' : '—' ?><?= $k['promena_kg'] !== null ? ' • ' . broj_znak($k['promena_kg']) . ' kg' : '' ?></div>
-      <div style="margin-top:6px" class="row"><span class="chip <?= $k['signal']['t'] ?>"><?= e($k['signal']['m']) ?></span><?= clanarina_chip($k) ?>
+      <div style="margin-top:6px" class="row"><span class="chip <?= $k['signal']['t'] ?>"><?= e($k['signal']['m']) ?></span><?= clanarina_chip($k) ?><?= $k['jezik'] === 'en' ? '<span class="chip mute">EN</span>' : '' ?>
       <?php foreach (oznake($k) as $o): ?><span class="chip mute"><?= e($o) ?></span><?php endforeach; ?></div></div>
   </a>
 <?php endforeach; ?>
@@ -77,6 +78,7 @@ $need = count(array_filter($lista, fn($k) => $k['signal']['nivo'] < 2));
     <label>Treninga nedeljno<input class="tin" name="treninga_nedeljno" type="number" min="1" max="7" value="<?= e($staro['treninga_nedeljno'] ?? 3) ?>"></label>
     <label>Datum početka<input class="tin" name="datum_pocetka" type="date" value="<?= e($staro['datum_pocetka'] ?? danas()) ?>"></label>
     <label>Članarina (dana)<input class="tin" name="clanarina_dana" type="number" min="0" max="400" value="<?= e($staro['clanarina_dana'] ?? pod('clanarina.produzenje_dana', 30)) ?>"></label>
+    <label class="full">Jezik aplikacije i mejlova<select class="tin" name="jezik"><option value="sr">Srpski</option><option value="en"<?= ($staro['jezik'] ?? '') === 'en' ? ' selected' : '' ?>>English (strani klijent)</option></select></label>
     <label class="full">Početni program<select class="tin" name="sablon_id"><option value="0">Prazan program</option>
       <?php foreach (sabloni() as $s): ?><option value="<?= (int)$s['id'] ?>">Šablon: <?= e($s['naziv']) ?> (<?= (int)$s['treninga'] ?> tr.)</option><?php endforeach; ?></select></label>
   </div>

@@ -5,6 +5,7 @@ if (post()) {
     $akcija = $_POST['akcija'] ?? '';
     $vid = unos_int($_POST['id'] ?? 0);
     $naziv = unos($_POST['naziv'] ?? '', 120);
+    $naziv_en = unos($_POST['naziv_en'] ?? '', 120);
     $yt = unos($_POST['youtube'] ?? '', 255);
     $teh = unos($_POST['tehnika'] ?? '', 2000);
     if ($yt !== '' && !preg_match('~^https://(www\.|m\.)?(youtube\.com|youtu\.be)/~i', $yt)) {
@@ -22,11 +23,11 @@ if (post()) {
     }
     switch ($akcija) {
         case 'dodaj':
-            upit('INSERT INTO vezbe (naziv, youtube, tehnika, kreirano) VALUES (?, ?, ?, ?)', [$naziv, $yt, $teh, sada()]);
+            upit('INSERT INTO vezbe (naziv, naziv_en, youtube, tehnika, kreirano) VALUES (?, ?, ?, ?, ?)', [$naziv, $naziv_en, $yt, $teh, sada()]);
             poruka('Vežba je dodata u bazu');
             preusmeri('/trener/vezbe#vz' . poslednji_id());
         case 'sacuvaj':
-            upit('UPDATE vezbe SET naziv = ?, youtube = ?, tehnika = ? WHERE id = ?', [$naziv, $yt, $teh, $vid]);
+            upit('UPDATE vezbe SET naziv = ?, naziv_en = ?, youtube = ?, tehnika = ? WHERE id = ?', [$naziv, $naziv_en, $yt, $teh, $vid]);
             poruka('Vežba je sačuvana');
             preusmeri('/trener/vezbe#vz' . $vid);
         case 'sakrij':
@@ -58,6 +59,7 @@ require KOREN . '/delovi/glava.php';
 <form class="card" method="post"><?= csrf_polje() ?><h3>Nova vežba</h3>
   <div class="form">
     <label class="full">Naziv<input class="tin" name="naziv" required maxlength="120" placeholder="npr. Iskorak u hodu"></label>
+    <label class="full">Naziv na engleskom (za strane klijente)<input class="tin" name="naziv_en" maxlength="120" placeholder="npr. Walking lunge"></label>
     <label class="full">YouTube link<input class="tin" name="youtube" type="url" placeholder="https://youtu.be/…"></label>
     <label class="full">Napomena o tehnici<textarea class="tin" name="tehnika" rows="2" placeholder="Kratko: na šta da pazi"></textarea></label>
   </div>
@@ -67,10 +69,11 @@ require KOREN . '/delovi/glava.php';
 <section class="card">
 <?php foreach ($lista as $v): ?>
   <details class="guide stavka" id="vz<?= (int)$v['id'] ?>">
-    <summary><b><?= e($v['naziv']) ?></b><?= (int)$v['aktivna'] ? '' : ' <span class="chip mute">sakrivena</span>' ?><?= $v['youtube'] === '' ? ' <span class="chip warn">bez videa</span>' : '' ?><span class="link" style="margin-left:auto">Uredi</span></summary>
+    <summary><b><?= e($v['naziv']) ?></b><?= $v['naziv_en'] !== '' ? ' <span class="muted" style="font-size:13px">' . e($v['naziv_en']) . '</span>' : '' ?><?= (int)$v['aktivna'] ? '' : ' <span class="chip mute">sakrivena</span>' ?><?= $v['youtube'] === '' ? ' <span class="chip warn">bez videa</span>' : '' ?><span class="link" style="margin-left:auto">Uredi</span></summary>
     <form method="post" class="stack" style="padding-top:10px"><?= csrf_polje() ?><input type="hidden" name="id" value="<?= (int)$v['id'] ?>">
       <div class="form">
         <label class="full">Naziv<input class="tin" name="naziv" value="<?= e($v['naziv']) ?>" required maxlength="120"></label>
+        <label class="full">Naziv na engleskom<input class="tin" name="naziv_en" value="<?= e($v['naziv_en']) ?>" maxlength="120"></label>
         <label class="full">YouTube link<input class="tin" name="youtube" type="url" value="<?= e($v['youtube']) ?>"></label>
         <label class="full">Napomena o tehnici<textarea class="tin" name="tehnika" rows="2"><?= e($v['tehnika']) ?></textarea></label>
       </div>

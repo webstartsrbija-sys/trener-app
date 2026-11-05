@@ -143,7 +143,7 @@ if (post()) {
                 } else {
                     $dani = array_values(array_filter(array_map('intval', (array)($_POST['dani'] ?? [])), fn($x) => $x >= 1 && $x <= 7));
                     $tn = max(1, min(7, unos_int($_POST['treninga_nedeljno'] ?? 3)));
-                    upit('UPDATE korisnici SET ime = ?, email = ? WHERE id = ?', [$ime, $email, $k['korisnik_id']]);
+                    upit('UPDATE korisnici SET ime = ?, email = ?, jezik = ? WHERE id = ?', [$ime, $email, ($_POST['jezik'] ?? '') === 'en' ? 'en' : 'sr', $k['korisnik_id']]);
                     upit('UPDATE klijenti SET cilj = ?, datum_pocetka = ?, treninga_nedeljno = ?, dani_treninga = ?, oznake = ?, napomena = ? WHERE id = ?', [
                         unos($_POST['cilj'] ?? '', 80),
                         ispravan_datum($_POST['datum_pocetka'] ?? null) ? $_POST['datum_pocetka'] : $k['datum_pocetka'],
@@ -183,7 +183,7 @@ if (post()) {
 
             case 'pozivnica':
                 require_once KOREN . '/app/mejl.php';
-                $kor = ['ime' => $k['ime'], 'email' => $k['email']];
+                $kor = ['ime' => $k['ime'], 'email' => $k['email'], 'jezik' => $k['jezik']];
                 $tok = napravi_token($k['korisnik_id'], (int)$k['ima_lozinku'] ? 'reset' : 'poziv');
                 $ok = (int)$k['ima_lozinku'] ? mejl_reset($kor, $tok) : mejl_pozivnica($kor, $tok);
                 $_SESSION['poziv_link'] = ['klijent' => $id, 'link' => adresa('/lozinka?t=' . $tok), 'poslat' => $ok];
@@ -362,6 +362,7 @@ if ($tab === 'program') {
     <label>Cilj<input class="tin" name="cilj" value="<?= e($k['cilj']) ?>" list="ciljevi" maxlength="80"></label>
     <label>Datum početka<input class="tin" type="date" name="datum_pocetka" value="<?= e($k['datum_pocetka']) ?>"></label>
     <label>Treninga nedeljno<input class="tin" type="number" min="1" max="7" name="treninga_nedeljno" value="<?= (int)$k['treninga_nedeljno'] ?>"></label>
+    <label>Jezik (aplikacija i mejlovi)<select class="tin" name="jezik"><option value="sr">Srpski</option><option value="en"<?= $k['jezik'] === 'en' ? ' selected' : '' ?>>English</option></select></label>
     <label>Oznake (zarez)<input class="tin" name="oznake" value="<?= e($k['oznake']) ?>" placeholder="npr. online, početnik"></label>
     <fieldset class="full dani"><legend>Dani treninga (za kalendar)</legend>
       <?php foreach (DANI_KRATKO as $b => $dn): ?><label class="potvrda"><input type="checkbox" name="dani[]" value="<?= $b ?>"<?= in_array($b, $dani, true) ? ' checked' : '' ?>> <?= $dn ?></label><?php endforeach; ?>

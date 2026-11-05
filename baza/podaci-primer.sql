@@ -12,43 +12,43 @@
 
 SET NAMES utf8mb4;
 SET @pon := CURDATE() - INTERVAL WEEKDAY(CURDATE()) DAY;
-SET @lozinka := '$2y$10$xDJ3jnGjM4klGyFKwNHiJeTWx/bzbQ6PnWiGtPs7lYEVoJWJ0imMW';
+SET @lozinka := '$2y$10$eKCJvM7dExqc5K7EPhGrq.9Usvj9j8/LnqMogbOA9GvZrTBoRg2FW';
 
 
 -- Baza vežbi (YouTube link trener upisuje u aplikaciji; dok ga nema, dugme Video traži tehniku na YouTube-u)
 
-INSERT INTO vezbe (id, naziv, youtube, tehnika, aktivna, kreirano) VALUES
-  (1, 'Čučanj', '', 'Grudi gore, kolena prate prste, spust do paralele.', 1, NOW()),
-  (2, 'Bench press', '', 'Lopatice skupljene, stopala čvrsto na podu, šipka do donjeg dela grudi.', 1, NOW()),
-  (3, 'Rumunsko mrtvo', '', 'Kukovi idu nazad, leđa neutralna, šipka blizu nogu.', 1, NOW()),
-  (4, 'Lat mašina', '', 'Vuci laktovima ka rebrima, bez zabacivanja trupa.', 1, NOW()),
-  (5, 'Veslanje sajla', '', 'Grudi gore, povuci do stomaka, kratka pauza.', 1, NOW()),
-  (6, 'Hip thrust', '', 'Brada uvučena, pauza 1 s gore, bez uvijanja donjih leđa.', 1, NOW()),
-  (7, 'Lateralno letenje', '', 'Kontrolisano, bez zamaha, laktovi blago savijeni.', 1, NOW()),
-  (8, 'Bugarski čučanj', '', 'Prednja noga radi, trup blago napred.', 1, NOW()),
-  (9, 'Potisak iznad glave', '', 'Stomak i gluteus stegnuti, glava prolazi kroz ruke na vrhu.', 1, NOW()),
-  (10, 'Pregib za biceps', '', 'Laktovi uz telo, spuštanje sporo.', 1, NOW()),
-  (11, 'Ekstenzija za triceps', '', 'Laktovi mirni, puna ekstenzija.', 1, NOW()),
-  (12, 'Leg curl', '', 'Kukovi pritisnuti uz klupu, polako nazad.', 1, NOW());
+INSERT INTO vezbe (id, naziv, naziv_en, youtube, tehnika, aktivna, kreirano) VALUES
+  (1, 'Čučanj', 'Squat', '', 'Grudi gore, kolena prate prste, spust do paralele.', 1, NOW()),
+  (2, 'Bench press', 'Bench press', '', 'Lopatice skupljene, stopala čvrsto na podu, šipka do donjeg dela grudi.', 1, NOW()),
+  (3, 'Rumunsko mrtvo', 'Romanian deadlift', '', 'Kukovi idu nazad, leđa neutralna, šipka blizu nogu.', 1, NOW()),
+  (4, 'Lat mašina', 'Lat pulldown', '', 'Vuci laktovima ka rebrima, bez zabacivanja trupa.', 1, NOW()),
+  (5, 'Veslanje sajla', 'Seated cable row', '', 'Grudi gore, povuci do stomaka, kratka pauza.', 1, NOW()),
+  (6, 'Hip thrust', 'Hip thrust', '', 'Brada uvučena, pauza 1 s gore, bez uvijanja donjih leđa.', 1, NOW()),
+  (7, 'Lateralno letenje', 'Lateral raise', '', 'Kontrolisano, bez zamaha, laktovi blago savijeni.', 1, NOW()),
+  (8, 'Bugarski čučanj', 'Bulgarian split squat', '', 'Prednja noga radi, trup blago napred.', 1, NOW()),
+  (9, 'Potisak iznad glave', 'Overhead press', '', 'Stomak i gluteus stegnuti, glava prolazi kroz ruke na vrhu.', 1, NOW()),
+  (10, 'Pregib za biceps', 'Biceps curl', '', 'Laktovi uz telo, spuštanje sporo.', 1, NOW()),
+  (11, 'Ekstenzija za triceps', 'Triceps extension', '', 'Laktovi mirni, puna ekstenzija.', 1, NOW()),
+  (12, 'Leg curl', 'Leg curl', '', 'Kukovi pritisnuti uz klupu, polako nazad.', 1, NOW());
 
 -- Namirnice
 
-INSERT INTO namirnice (id, naziv, kcal, p, uh, m) VALUES
-  (1, 'Pileća prsa (sirova)', 120, 23, 0, 2.6),
-  (2, 'Junetina 5% (sirova)', 137, 21, 0, 5),
-  (3, 'Losos (sirov)', 208, 20, 0, 13),
-  (4, 'Tunjevina u vodi', 116, 26, 0, 1),
-  (5, 'Jaja', 143, 12.6, 0.7, 9.5),
-  (6, 'Grčki jogurt 2%', 73, 10, 4, 2),
-  (7, 'Posni sir', 98, 11, 3.4, 4.3),
-  (8, 'Ovsene pahuljice', 370, 13, 60, 7),
-  (9, 'Pirinač (sirov)', 360, 7, 79, 0.6),
-  (10, 'Krompir (sirov)', 77, 2, 17, 0.1),
-  (11, 'Integralni hleb', 250, 10, 43, 3.5),
-  (12, 'Banana', 89, 1.1, 23, 0.3),
-  (13, 'Jabuka', 52, 0.3, 14, 0.2),
-  (14, 'Maslinovo ulje', 884, 0, 0, 100),
-  (15, 'Kikiriki puter', 588, 25, 20, 50);
+INSERT INTO namirnice (id, naziv, naziv_en, kcal, p, uh, m) VALUES
+  (1, 'Pileća prsa (sirova)', 'Chicken breast (raw)', 120, 23, 0, 2.6),
+  (2, 'Junetina 5% (sirova)', 'Lean beef 5% (raw)', 137, 21, 0, 5),
+  (3, 'Losos (sirov)', 'Salmon (raw)', 208, 20, 0, 13),
+  (4, 'Tunjevina u vodi', 'Tuna in water', 116, 26, 0, 1),
+  (5, 'Jaja', 'Eggs', 143, 12.6, 0.7, 9.5),
+  (6, 'Grčki jogurt 2%', 'Greek yogurt 2%', 73, 10, 4, 2),
+  (7, 'Posni sir', 'Cottage cheese', 98, 11, 3.4, 4.3),
+  (8, 'Ovsene pahuljice', 'Rolled oats', 370, 13, 60, 7),
+  (9, 'Pirinač (sirov)', 'Rice (raw)', 360, 7, 79, 0.6),
+  (10, 'Krompir (sirov)', 'Potatoes (raw)', 77, 2, 17, 0.1),
+  (11, 'Integralni hleb', 'Wholegrain bread', 250, 10, 43, 3.5),
+  (12, 'Banana', 'Banana', 89, 1.1, 23, 0.3),
+  (13, 'Jabuka', 'Apple', 52, 0.3, 14, 0.2),
+  (14, 'Maslinovo ulje', 'Olive oil', 884, 0, 0, 100),
+  (15, 'Kikiriki puter', 'Peanut butter', 588, 25, 20, 50);
 
 -- Primeri ishrane
 

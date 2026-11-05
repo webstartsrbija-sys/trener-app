@@ -19,9 +19,9 @@ $p = uzmi_poruku();
 ?>
 </main>
 <?php if ($stavke): ?>
-<nav class="bottom" aria-label="Glavni meni"><div class="wrap">
+<nav class="bottom" aria-label="<?= te('Glavni meni') ?>"><div class="wrap">
 <?php foreach ($stavke as [$href, $kljuc, $natpis, $ik]): ?>
-  <a href="<?= $href ?>"<?= $aktivno === $kljuc ? ' aria-current="page"' : '' ?>><?= $ikone[$ik] ?><?= e($natpis) ?></a>
+  <a href="<?= $href ?>"<?= $aktivno === $kljuc ? ' aria-current="page"' : '' ?>><?= $ikone[$ik] ?><?= te($natpis) ?></a>
 <?php endforeach; ?>
 </div></nav>
 <?php endif; ?>

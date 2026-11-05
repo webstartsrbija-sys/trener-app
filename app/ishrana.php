@@ -46,7 +46,8 @@ function primeri(?int $za_klijenta = null, bool $samo_licni = false): array
         $obroci[(int)$o['id']] = $o;
     }
     if ($obroci) {
-        foreach (redovi('SELECT * FROM primeri_stavke WHERE obrok_id IN (' . implode(',', array_keys($obroci)) . ') ORDER BY redosled, id') as $st) {
+        foreach (redovi('SELECT ps.*, n.naziv_en FROM primeri_stavke ps LEFT JOIN namirnice n ON n.id = ps.namirnica_id
+                         WHERE ps.obrok_id IN (' . implode(',', array_keys($obroci)) . ') ORDER BY ps.redosled, ps.id') as $st) {
             $obroci[(int)$st['obrok_id']]['stavke'][] = $st;
         }
         foreach ($obroci as $o) {
@@ -76,7 +77,7 @@ function vrednosti_namirnice(array $n, int $grami): array
 /** "Pileća prsa (sirova) 180 g, Pirinač (sirov) 80 g" */
 function stavke_tekst(array $stavke): string
 {
-    return implode(', ', array_map(fn($s) => $s['naziv'] . ' ' . (int)$s['grami'] . ' g', $stavke));
+    return implode(', ', array_map(fn($s) => naziv_jezik($s) . ' ' . (int)$s['grami'] . ' g', $stavke));
 }
 
 /** Kopija primera (obroci + stavke), npr. zajednički primer -> lični primer klijenta. */
@@ -127,7 +128,7 @@ function spisak_hrane(array $stavke): string
     $h = '';
     foreach ($stavke as $s) {
         $h .= '<div class="meal"><div><b>' . e($s['naziv']) . '</b> <span class="muted">' . (int)$s['grami'] . ' g</span></div>'
-            . '<div class="k">' . (int)round((float)$s['kcal']) . ' kcal<br>P ' . broj($s['p'], 0) . ' • UH ' . broj($s['uh'], 0) . ' • M ' . broj($s['m'], 0) . '</div></div>';
+            . '<div class="k">' . (int)round((float)$s['kcal']) . ' kcal<br>' . pum($s['p'], $s['uh'], $s['m']) . '</div></div>';
     }
     return $h;
 }
@@ -152,21 +153,27 @@ function kcal_u_okviru(float $kcal, ?array $okvir): bool
 function makro_kutija(array $t): string
 {
     return '<div class="macros"><div class="macro"><b>' . (int)round($t['kcal']) . '</b><span>kcal</span></div>'
-        . '<div class="macro"><b>' . (int)round($t['p']) . '</b><span>protein g</span></div>'
-        . '<div class="macro"><b>' . (int)round($t['uh']) . '</b><span>UH g</span></div>'
-        . '<div class="macro"><b>' . (int)round($t['m']) . '</b><span>masti g</span></div></div>';
+        . '<div class="macro"><b>' . (int)round($t['p']) . '</b><span>' . te('protein g') . '</span></div>'
+        . '<div class="macro"><b>' . (int)round($t['uh']) . '</b><span>' . te('UH g') . '</span></div>'
+        . '<div class="macro"><b>' . (int)round($t['m']) . '</b><span>' . te('masti g') . '</span></div></div>';
+}
+
+/** "P 35 • UH 63 • M 6" (engleski: "P 35 • C 63 • F 6") */
+function pum(mixed $p, mixed $uh, mixed $m): string
+{
+    return 'P ' . (int)round((float)$p) . ' • ' . t('UH') . ' ' . (int)round((float)$uh) . ' • ' . t('M') . ' ' . (int)round((float)$m);
 }
 
 /** Trake "koliko ti je ostalo" za zadati zbir i okvir. */
 function trake_ostalo(array $zbir, array $okvir, bool $ostalo = true): string
 {
     $h = '';
-    foreach ([['kcal', 'Kalorije', 'kcal'], ['p', 'Protein', 'g'], ['uh', 'Ugljeni hidrati', 'g'], ['m', 'Masti', 'g']] as [$k, $n, $j]) {
+    foreach ([['kcal', t('Kalorije'), 'kcal'], ['p', t('Protein'), 'g'], ['uh', t('Ugljeni hidrati'), 'g'], ['m', t('Masti'), 'g']] as [$k, $n, $j]) {
         $v = (float)$zbir[$k];
         $g = max(1, (int)$okvir[$k]);
         $pc = $v / $g * 100;
         $h .= '<div class="stack" style="gap:4px"><div class="row between"><span>' . $n . '</span><span><b>' . (int)round($v) . '</b> / ' . $g . ' ' . $j
-            . ($ostalo ? ' <span class="muted">• ostalo ' . max(0, (int)round($g - $v)) . '</span>' : '') . '</span></div>'
+            . ($ostalo ? ' <span class="muted">• ' . te('ostalo %s', max(0, (int)round($g - $v))) . '</span>' : '') . '</span></div>'
             . '<div class="bar"><i class="' . ($pc > 105 ? 'over' : '') . '" style="width:' . min(100, round($pc, 1)) . '%"></i></div></div>';
     }
     return $h;

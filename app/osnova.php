@@ -119,13 +119,14 @@ function e_redovi(?string $tekst): string
 /** Broj na srpski način: 69,8 */
 function broj(float|int|string|null $n, int $decimale = 1): string
 {
-    return number_format((float)$n, $decimale, ',', '.');
+    return jezik() === 'en' ? number_format((float)$n, $decimale, '.', ',') : number_format((float)$n, $decimale, ',', '.');
 }
 
 /** Broj za polje forme: 884 / 2,6 (bez razdvajanja hiljada, bez suvišnih nula) */
 function broj_polje(float|int|string|null $n): string
 {
-    return rtrim(rtrim(number_format((float)$n, 1, ',', ''), '0'), ',');
+    $z = jezik() === 'en' ? '.' : ',';
+    return rtrim(rtrim(number_format((float)$n, 1, $z, ''), '0'), $z);
 }
 
 /** Broj sa predznakom: +1,2 / −0,4 */
@@ -185,11 +186,11 @@ function greska(int $status, string $poruka = ''): never
 {
     http_response_code($status);
     $naslovi = [403 => 'Nemaš pristup', 404 => 'Stranica ne postoji', 405 => 'Nedozvoljen zahtev', 419 => 'Sesija je istekla'];
-    $naslov = $naslovi[$status] ?? 'Greška';
+    $naslov = t($naslovi[$status] ?? 'Greška');
     if (str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/api/')) {
-        json(['ok' => false, 'greska' => $poruka ?: $naslov], $status);
+        json(['ok' => false, 'greska' => $poruka !== '' ? t($poruka) : $naslov], $status);
     }
-    $poruka = $poruka ?: 'Vrati se na početnu i probaj ponovo.';
+    $poruka = t($poruka ?: 'Vrati se na početnu i probaj ponovo.');
     require KOREN . '/delovi/greska.php';
     exit;
 }
@@ -266,19 +267,25 @@ function ispravan_datum(mixed $d): bool
 function datum_lep(string $d, bool $godina = false): string
 {
     $t = strtotime($d);
+    if (jezik() === 'en') {
+        return (int)date('j', $t) . ' ' . mesec((int)date('n', $t)) . ($godina ? ' ' . date('Y', $t) : '');
+    }
     return (int)date('j', $t) . '. ' . MESECI_GEN[(int)date('n', $t) - 1] . ($godina ? ' ' . date('Y', $t) . '.' : '');
 }
 
 /** "03.11.2026." */
 function datum_kratko(?string $d): string
 {
-    return $d ? date('d.m.Y.', strtotime($d)) : '—';
+    return $d ? date(jezik() === 'en' ? 'd/m/Y' : 'd.m.Y.', strtotime($d)) : '—';
 }
 
 /** "Utorak, 3. novembar" */
 function datum_naslov(string $d): string
 {
     $t = strtotime($d);
+    if (jezik() === 'en') {
+        return dan_dugo((int)date('N', $t)) . ', ' . (int)date('j', $t) . ' ' . mesec((int)date('n', $t));
+    }
     return DANI_DUGO[(int)date('N', $t)] . ', ' . (int)date('j', $t) . '. ' . MESECI[(int)date('n', $t) - 1];
 }
 
@@ -286,3 +293,5 @@ function vreme_kratko(?string $dt): string
 {
     return $dt ? date('H:i', strtotime($dt)) : '';
 }
+
+require_once __DIR__ . '/jezik.php';

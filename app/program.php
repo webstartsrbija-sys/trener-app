@@ -33,7 +33,7 @@ function program_stablo(int $program_id): array
     }
     $ids = implode(',', array_keys($treninzi));
     $vezbe = [];
-    foreach (redovi("SELECT tv.*, v.naziv, v.youtube, v.tehnika FROM trening_vezbe tv
+    foreach (redovi("SELECT tv.*, v.naziv, v.naziv_en, v.youtube, v.tehnika FROM trening_vezbe tv
                      JOIN vezbe v ON v.id = tv.vezba_id
                      WHERE tv.trening_id IN ($ids) ORDER BY tv.redosled, tv.id") as $v) {
         $v['serije'] = [];
@@ -186,6 +186,9 @@ function youtube_link(string $url, string $naziv): string
 
 function serije_rec(int $n): string
 {
+    if (jezik() === 'en') {
+        return $n . ($n === 1 ? ' set' : ' sets');
+    }
     $d = $n % 10;
     $s = $n % 100;
     return $n . ' ' . (($d >= 2 && $d <= 4 && ($s < 12 || $s > 14)) ? 'serije' : ($d === 1 && $s !== 11 ? 'serija' : 'serija'));

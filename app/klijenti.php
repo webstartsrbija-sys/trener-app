@@ -10,7 +10,7 @@ const CILJEVI = ['Gubitak masti', 'Povećanje snage', 'Rekompozicija', 'Povećan
 /** Klijent sa podacima naloga i okvirom ishrane. Bez provere prava — to radi pozivalac. */
 function klijent(int $id): ?array
 {
-    $k = red('SELECT kl.*, k.ime, k.email, k.slika, k.aktivan, k.poslednja_prijava,
+    $k = red('SELECT kl.*, k.ime, k.email, k.slika, k.jezik, k.aktivan, k.poslednja_prijava,
                      (k.lozinka_hash IS NOT NULL) AS ima_lozinku,
                      o.kcal, o.p, o.uh, o.m
               FROM klijenti kl
@@ -93,7 +93,7 @@ function program_blokiran(array $k): bool
 
 function za_dana(int $n): string
 {
-    return $n === 0 ? 'danas' : ($n === 1 ? 'za 1 dan' : "za $n dana");
+    return $n === 0 ? t('danas') : ($n === 1 ? t('za 1 dan') : t('za %s dana', $n));
 }
 
 function clanarina_chip(array $k): string
@@ -258,8 +258,9 @@ function lista_klijenata(bool $arhivirani = false, string $trazi = ''): array
 function napravi_klijenta(array $p): array
 {
     return transakcija(function () use ($p) {
-        upit("INSERT INTO korisnici (uloga, email, ime, kreirano) VALUES ('klijent', ?, ?, ?)",
-            [$p['email'], $p['ime'], sada()]);
+        $jezik = ($p['jezik'] ?? 'sr') === 'en' ? 'en' : 'sr';
+        upit("INSERT INTO korisnici (uloga, email, ime, jezik, kreirano) VALUES ('klijent', ?, ?, ?, ?)",
+            [$p['email'], $p['ime'], $jezik, sada()]);
         $kid = poslednji_id();
         $dani = implode(',', podrazumevani_dani($p['treninga_nedeljno']));
         upit('INSERT INTO klijenti (korisnik_id, cilj, datum_pocetka, treninga_nedeljno, dani_treninga, clanarina_do, kreirano)
@@ -275,6 +276,6 @@ function napravi_klijenta(array $p): array
             kopiraj_program((int)$p['sablon_id'], $pid);
         }
         $token = napravi_token($kid, 'poziv');
-        return ['id' => $id, 'korisnik' => ['ime' => $p['ime'], 'email' => $p['email']], 'token' => $token];
+        return ['id' => $id, 'korisnik' => ['ime' => $p['ime'], 'email' => $p['email'], 'jezik' => $jezik], 'token' => $token];
     });
 }

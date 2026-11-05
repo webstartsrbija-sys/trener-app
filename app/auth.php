@@ -66,7 +66,7 @@ function korisnik(): ?array
         return $k = null;
     }
 
-    $r = red('SELECT k.id, k.uloga, k.email, k.ime, k.slika, k.aktivan, k.lozinka_hash, kl.id AS klijent_id
+    $r = red('SELECT k.id, k.uloga, k.email, k.ime, k.slika, k.jezik, k.aktivan, k.lozinka_hash, kl.id AS klijent_id
               FROM korisnici k LEFT JOIN klijenti kl ON kl.korisnik_id = k.id
               WHERE k.id = ?', [$id]);
     if (!$r || !(int)$r['aktivan'] || ($r['uloga'] === 'klijent' && !$r['klijent_id'])) {
@@ -111,7 +111,7 @@ function prijavi(string $email, string $lozinka, bool $zapamti): ?string
 {
     sesija_start();
     if (previse_pokusaja()) {
-        return 'Previše neuspelih pokušaja. Sačekaj ' . (int)pod('bezbednost.period_minuta', 15) . ' minuta pa probaj ponovo.';
+        return t('Previše neuspelih pokušaja. Sačekaj %s minuta pa probaj ponovo.', (int)pod('bezbednost.period_minuta', 15));
     }
     $r = red('SELECT id, lozinka_hash, aktivan FROM korisnici WHERE email = ?', [mb_strtolower(trim($email))]);
     $hash = $r['lozinka_hash'] ?? null;
@@ -119,7 +119,7 @@ function prijavi(string $email, string $lozinka, bool $zapamti): ?string
     $ok = password_verify($lozinka, $hash ?: '$2y$10$' . str_repeat('x', 53));
     if (!$r || !$hash || !$ok || !(int)$r['aktivan']) {
         zabelezi_pokusaj();
-        return 'Pogrešan email ili lozinka.';
+        return t('Pogrešan email ili lozinka.');
     }
     if (password_needs_rehash($hash, PASSWORD_DEFAULT)) {
         upit('UPDATE korisnici SET lozinka_hash = ? WHERE id = ?', [password_hash($lozinka, PASSWORD_DEFAULT), $r['id']]);
@@ -262,7 +262,7 @@ function nadji_token(string $token): ?array
     if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
         return null;
     }
-    return red('SELECT t.id, t.svrha, t.korisnik_id, k.ime, k.email
+    return red('SELECT t.id, t.svrha, t.korisnik_id, k.ime, k.email, k.jezik
                 FROM tokeni t JOIN korisnici k ON k.id = t.korisnik_id
                 WHERE t.token_hash = ? AND t.iskoriscen IS NULL AND t.istice > ? AND k.aktivan = 1',
         [hash('sha256', $token), sada()]);
@@ -281,13 +281,13 @@ function iskoristi_token(int $token_id): void
 function greska_nove_lozinke(string $l1, string $l2): ?string
 {
     if (mb_strlen($l1) < 8) {
-        return 'Lozinka mora imati bar 8 znakova.';
+        return t('Lozinka mora imati bar 8 znakova.');
     }
     if (mb_strlen($l1) > 200) {
-        return 'Lozinka je preduga.';
+        return t('Lozinka je preduga.');
     }
     if ($l1 !== $l2) {
-        return 'Lozinke se ne poklapaju.';
+        return t('Lozinke se ne poklapaju.');
     }
     return null;
 }

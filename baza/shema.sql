@@ -24,6 +24,7 @@ CREATE TABLE korisnici (
     email             VARCHAR(190) NOT NULL,
     ime               VARCHAR(120) NOT NULL,
     slika             VARCHAR(60) NULL,               -- profilna slika u privatno/slike/ (nasumično ime), NULL = inicijali
+    jezik             CHAR(2) NOT NULL DEFAULT 'sr',  -- jezik aplikacije i mejlova: 'sr' ili 'en'
     lozinka_hash      VARCHAR(255) NULL,              -- NULL dok klijent ne postavi lozinku
     aktivan           TINYINT(1) NOT NULL DEFAULT 1,  -- 0 = arhiviran, ne može da se prijavi
     poslednja_prijava DATETIME NULL,
@@ -121,6 +122,7 @@ CREATE TABLE produzenja (
 CREATE TABLE vezbe (
     id        INT UNSIGNED NOT NULL AUTO_INCREMENT,
     naziv     VARCHAR(120) NOT NULL,
+    naziv_en  VARCHAR(120) NOT NULL DEFAULT '',   -- naziv za klijente na engleskom (prazno = srpski)
     youtube   VARCHAR(255) NOT NULL DEFAULT '',   -- samo link (unlisted video), ništa se ne otprema
     tehnika   TEXT NULL,                          -- kratka napomena o tehnici
     aktivna   TINYINT(1) NOT NULL DEFAULT 1,      -- 0 = sakrivena iz izbora, stari programi je i dalje prikazuju
@@ -281,7 +283,8 @@ CREATE TABLE tezine (
 -- Vrednosti na 100 g
 CREATE TABLE namirnice (
     id     INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    naziv  VARCHAR(120) NOT NULL,
+    naziv     VARCHAR(120) NOT NULL,
+    naziv_en  VARCHAR(120) NOT NULL DEFAULT '',   -- naziv na engleskom (prazno = srpski)
     kcal   DECIMAL(6,1) NOT NULL DEFAULT 0,
     p      DECIMAL(5,1) NOT NULL DEFAULT 0,
     uh     DECIMAL(5,1) NOT NULL DEFAULT 0,
@@ -381,6 +384,7 @@ CREATE TABLE vodici (
     velicina    INT UNSIGNED NOT NULL DEFAULT 0,
     redosled    SMALLINT UNSIGNED NOT NULL DEFAULT 0,
     objavljen   TINYINT(1) NOT NULL DEFAULT 1,
+    jezik       CHAR(2) NOT NULL DEFAULT '',        -- '' = svi klijenti, 'sr' / 'en' = samo klijenti na tom jeziku
     kreirano    DATETIME NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -54,7 +54,7 @@ function sesija_puna(int $sesija_id): ?array
     }
     $s['checkin'] = red('SELECT * FROM checkini WHERE sesija_id = ?', [$sesija_id]);
     $vezbe = [];
-    foreach (redovi('SELECT sv.*, v.youtube, v.tehnika FROM sesija_vezbe sv LEFT JOIN vezbe v ON v.id = sv.vezba_id
+    foreach (redovi('SELECT sv.*, v.youtube, v.tehnika, v.naziv_en FROM sesija_vezbe sv LEFT JOIN vezbe v ON v.id = sv.vezba_id
                      WHERE sv.sesija_id = ? ORDER BY sv.redosled, sv.id', [$sesija_id]) as $v) {
         $v['serije'] = [];
         $vezbe[(int)$v['id']] = $v;
@@ -171,10 +171,10 @@ function checkin_chipovi(?array $c): string
         }
         $v = (int)$c[$k];
         $klasa = $k === 'stres' ? ($v >= 4 ? 'bad' : 'ok') : ($v <= 2 ? 'warn' : 'ok');
-        $h .= '<span class="chip ' . $klasa . '">' . $natpis . ' ' . $v . '/5</span>';
+        $h .= '<span class="chip ' . $klasa . '">' . te($natpis) . ' ' . $v . '/5</span>';
     }
     if ($c['bol'] !== null) {
-        $h .= '<span class="chip ' . ($c['bol'] === 'Nema' ? 'ok' : 'bad') . '">Bol: ' . e($c['bol']) . '</span>';
+        $h .= '<span class="chip ' . ($c['bol'] === 'Nema' ? 'ok' : 'bad') . '">' . te('Bol: %s', t($c['bol'])) . '</span>';
     }
     return $h !== '' ? '<div class="row">' . $h . '</div>' : '';
 }

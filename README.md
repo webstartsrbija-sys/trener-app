@@ -35,6 +35,10 @@ Trener menja program kad god hoće (tabele `programi`, `treninzi`, `trening_vezb
 - Autosave šalje unos 0,8 s posle kucanja, kao i kad se telefon zaključa (`sendBeacon`). Zahtevi idu jedan po jedan, a red klijenta se zaključava u bazi (`FOR UPDATE`), pa ne mogu da nastanu duple sesije.
 - **Šablon** je program bez klijenta (`programi.klijent_id IS NULL`).
 
+## Jezik (srpski / engleski)
+
+Klijentski deo je preveden na engleski za strane klijente. Tekst u kodu je na srpskom i prolazi kroz `t('…')`, a prevod je u `app/jezik/en.php`. Jezik klijenta se čuva na nalogu (`korisnici.jezik`): bira ga trener ili sam klijent dugmetom EN/SR. Mejlovi klijentu idu na njegovom jeziku. Trenerov deo je samo na srpskom. Posle dodavanja novog teksta pokreni `php dev/proveri-prevode.php`, koji ispisuje tekstove bez prevoda.
+
 ## Bezbednost
 
 - **Uloge:** postoje dve, `trener` i `klijent`, i zavise samo od naloga. Prekidača iz prototipa nema.
