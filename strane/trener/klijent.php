@@ -257,6 +257,22 @@ if ($tab === 'program') {
   <p class="muted" style="margin:0;font-size:13px">Primere dana pišeš jednom (meni Ishrana), a klijent ih vidi u svom delu Ishrana.</p>
   <button class="btn primary block" name="akcija" value="okvir">Sačuvaj</button>
 </form>
+<section class="card"><h2>Primeri ishrane samo za klijenta</h2>
+<?php $licni = primeri($id, true); if (!$licni): ?><p class="muted" style="margin:0;font-size:14px">Klijent vidi zajedničke primere dana. Ovde možeš da mu napraviš lične — iz početka ili kao kopiju zajedničkog primera.</p><?php endif; ?>
+<?php foreach ($licni as $pr): $zz = zbir_obroka($pr['obroci']); ?>
+  <a class="guide" href="/trener/ishrana?p=<?= (int)$pr['id'] ?>"><b><?= e($pr['naziv']) ?></b><span class="muted" style="font-size:13px"><?= (int)$zz['kcal'] ?> kcal • P <?= (int)$zz['p'] ?> <span class="link">Uredi</span></span></a>
+<?php endforeach; ?>
+  <form method="post" action="/trener/ishrana" class="row"><?= csrf_polje() ?><input type="hidden" name="klijent_id" value="<?= $id ?>">
+    <input class="tin" name="naziv" placeholder="Naziv, npr. Plan za <?= e(ime_kratko($k['ime'])) ?>" maxlength="120" style="flex:1 1 180px" aria-label="Naziv primera">
+    <button class="btn" name="akcija" value="primer_dodaj">+ Novi primer za klijenta</button>
+  </form>
+  <?php $zajednicki = primeri(null); $zajednicki = array_filter($zajednicki, fn($x) => $x['klijent_id'] === null); if ($zajednicki): ?>
+  <form method="post" action="/trener/ishrana" class="row"><?= csrf_polje() ?><input type="hidden" name="kopija_za" value="<?= $id ?>">
+    <select class="tin" name="id" style="flex:1 1 180px" aria-label="Zajednički primer"><?php foreach ($zajednicki as $zp): ?><option value="<?= (int)$zp['id'] ?>"><?= e($zp['naziv']) ?></option><?php endforeach; ?></select>
+    <button class="btn" name="akcija" value="primer_kopiraj">Kopiraj za klijenta</button>
+  </form>
+  <?php endif; ?>
+</section>
 <section class="card"><h2>Poslednjih 7 dana</h2>
 <?php for ($d = danas(); $d >= dan_plus(danas(), -6); $d = dan_plus($d, -1)): $x = $poslednjih[$d] ?? null; ?>
   <div class="meal"><div><b><?= DANI_KRATKO[dan_u_nedelji($d)] ?></b> <span class="muted"><?= date('j.n.', strtotime($d)) ?></span></div>

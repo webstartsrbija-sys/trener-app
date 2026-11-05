@@ -26,7 +26,7 @@ if (post()) {
 }
 
 $okv = okvir($k);
-$primeri = primeri();
+$primeri = primeri($k['id']);
 $tab = (string)($_GET['tab'] ?? ($primeri ? 'p' . $primeri[0]['id'] : 'dan'));
 $naslov = 'Ishrana';
 $aktivno = 'ishrana';
@@ -51,9 +51,9 @@ foreach ($primeri as $p):
     $prikazan = true;
     $z = zbir_obroka($p['obroci']);
 ?>
-<section class="card"><h2><?= e($p['naziv']) ?></h2>
+<section class="card"><h2><?= e($p['naziv']) ?></h2><?= $p['klijent_id'] ? '<span class="chip" style="align-self:flex-start">Samo za tebe</span>' : '' ?>
 <?php foreach ($p['obroci'] as $o): ?>
-  <div class="meal"><div><b><?= e($o['naziv']) ?></b><div><?= e($o['opis']) ?></div></div><div class="k"><?= (int)$o['kcal'] ?> kcal<br>P <?= (int)$o['p'] ?> • UH <?= (int)$o['uh'] ?> • M <?= (int)$o['m'] ?></div></div>
+  <div class="meal"><div><b><?= e($o['naziv']) ?></b><?php if ($o['stavke']): ?><div><?= e(stavke_tekst($o['stavke'])) ?></div><?php endif; ?><?php if (trim($o['opis']) !== ''): ?><div<?= $o['stavke'] ? ' class="muted" style="font-size:14px"' : '' ?>><?= e($o['opis']) ?></div><?php endif; ?></div><div class="k"><?= (int)$o['kcal'] ?> kcal<br>P <?= (int)$o['p'] ?> • UH <?= (int)$o['uh'] ?> • M <?= (int)$o['m'] ?></div></div>
 <?php endforeach; ?>
   <div class="meal"><b>Ukupno</b><div class="k"><b style="color:var(--ink)"><?= (int)$z['kcal'] ?> kcal</b><br>P <?= (int)$z['p'] ?> • UH <?= (int)$z['uh'] ?> • M <?= (int)$z['m'] ?></div></div>
 </section>

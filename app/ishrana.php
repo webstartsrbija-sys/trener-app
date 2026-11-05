@@ -15,20 +15,84 @@ function namirnice(): array
     return redovi('SELECT * FROM namirnice ORDER BY naziv');
 }
 
-/** Primeri dana sa obrocima. */
-function primeri(): array
+/**
+ * Primeri dana sa obrocima i stavkama (namirnicama).
+ * $za_klijenta: null = svi primeri (trener), broj = zajednički + primeri tog klijenta.
+ */
+function primeri(?int $za_klijenta = null, bool $samo_licni = false): array
 {
+    if ($samo_licni) {
+        $sql = 'SELECT * FROM primeri_ishrane WHERE klijent_id = ? ORDER BY redosled, id';
+        $par = [$za_klijenta];
+    } elseif ($za_klijenta !== null) {
+        // Lični primeri klijenta idu prvi
+        $sql = 'SELECT * FROM primeri_ishrane WHERE klijent_id IS NULL OR klijent_id = ? ORDER BY klijent_id IS NULL, redosled, id';
+        $par = [$za_klijenta];
+    } else {
+        $sql = 'SELECT * FROM primeri_ishrane ORDER BY klijent_id IS NOT NULL, redosled, id';
+        $par = [];
+    }
     $p = [];
-    foreach (redovi('SELECT * FROM primeri_ishrane ORDER BY redosled, id') as $r) {
+    foreach (redovi($sql, $par) as $r) {
         $r['obroci'] = [];
         $p[(int)$r['id']] = $r;
     }
-    if ($p) {
-        foreach (redovi('SELECT * FROM primeri_obroci WHERE primer_id IN (' . implode(',', array_keys($p)) . ') ORDER BY redosled, id') as $o) {
+    if (!$p) {
+        return [];
+    }
+    $obroci = [];
+    foreach (redovi('SELECT * FROM primeri_obroci WHERE primer_id IN (' . implode(',', array_keys($p)) . ') ORDER BY redosled, id') as $o) {
+        $o['stavke'] = [];
+        $obroci[(int)$o['id']] = $o;
+    }
+    if ($obroci) {
+        foreach (redovi('SELECT * FROM primeri_stavke WHERE obrok_id IN (' . implode(',', array_keys($obroci)) . ') ORDER BY redosled, id') as $st) {
+            $obroci[(int)$st['obrok_id']]['stavke'][] = $st;
+        }
+        foreach ($obroci as $o) {
             $p[(int)$o['primer_id']]['obroci'][] = $o;
         }
     }
     return array_values($p);
+}
+
+/** Obrok sa stavkama dobija kcal/P/UH/M kao zbir stavki. */
+function preracunaj_obrok(int $obrok_id): void
+{
+    $z = red('SELECT COUNT(*) n, SUM(kcal) kcal, SUM(p) p, SUM(uh) uh, SUM(m) m FROM primeri_stavke WHERE obrok_id = ?', [$obrok_id]);
+    if ((int)$z['n'] > 0) {
+        upit('UPDATE primeri_obroci SET kcal = ?, p = ?, uh = ?, m = ? WHERE id = ?',
+            [(int)round((float)$z['kcal']), (int)round((float)$z['p']), (int)round((float)$z['uh']), (int)round((float)$z['m']), $obrok_id]);
+    }
+}
+
+/** Vrednosti namirnice za zadatu gramažu. */
+function vrednosti_namirnice(array $n, int $grami): array
+{
+    $x = $grami / 100;
+    return ['kcal' => round($n['kcal'] * $x, 1), 'p' => round($n['p'] * $x, 1), 'uh' => round($n['uh'] * $x, 1), 'm' => round($n['m'] * $x, 1)];
+}
+
+/** "Pileća prsa (sirova) 180 g, Pirinač (sirov) 80 g" */
+function stavke_tekst(array $stavke): string
+{
+    return implode(', ', array_map(fn($s) => $s['naziv'] . ' ' . (int)$s['grami'] . ' g', $stavke));
+}
+
+/** Kopija primera (obroci + stavke), npr. zajednički primer -> lični primer klijenta. */
+function kopiraj_primer(int $primer_id, ?int $klijent_id, string $naziv): int
+{
+    $red = (int)vrednost('SELECT COALESCE(MAX(redosled), 0) + 1 FROM primeri_ishrane');
+    upit('INSERT INTO primeri_ishrane (klijent_id, naziv, redosled) VALUES (?, ?, ?)', [$klijent_id, $naziv, $red]);
+    $novi = poslednji_id();
+    foreach (redovi('SELECT * FROM primeri_obroci WHERE primer_id = ? ORDER BY redosled, id', [$primer_id]) as $o) {
+        upit('INSERT INTO primeri_obroci (primer_id, redosled, naziv, opis, kcal, p, uh, m) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [$novi, $o['redosled'], $o['naziv'], $o['opis'], $o['kcal'], $o['p'], $o['uh'], $o['m']]);
+        $oid = poslednji_id();
+        upit('INSERT INTO primeri_stavke (obrok_id, namirnica_id, redosled, naziv, grami, kcal, p, uh, m)
+              SELECT ?, namirnica_id, redosled, naziv, grami, kcal, p, uh, m FROM primeri_stavke WHERE obrok_id = ?', [$oid, $o['id']]);
+    }
+    return $novi;
 }
 
 function zbir_obroka(array $obroci): array

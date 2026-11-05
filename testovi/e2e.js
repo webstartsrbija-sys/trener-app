@@ -176,6 +176,30 @@ async function tok(browser, sirina) {
   await T.p.goto(`${BAZA}/trener/klijent/${noviId}?tab=clanarina`);
   await Promise.all([T.p.waitForNavigation(), T.p.click('button[value=produzi]')]);
   ok(await T.p.isVisible('text=Članarina važi do'), 'članarina je produžena');
+
+  // Ishrana iz baze namirnica: lični primer za klijenta, vrednosti se računaju same
+  await T.p.goto(`${BAZA}/trener/klijent/${noviId}?tab=ishrana`);
+  await T.p.fill('input[name=naziv][placeholder^="Naziv"]', 'Plan ' + sirina);
+  await Promise.all([T.p.waitForNavigation(), T.p.click('button:has-text("+ Novi primer za klijenta")')]);
+  ok(/\/trener\/ishrana\?p=\d+/.test(T.p.url()), 'napravljen je primer za klijenta');
+  const obrok = T.p.locator('[data-obrok]').first();
+  await obrok.locator('[data-nova] select').selectOption({ label: 'Pileća prsa (sirova)' });
+  await obrok.locator('[data-nova] input').fill('150');
+  ok((await obrok.locator('[data-nova] [data-vrednost]').textContent()).includes('180 kcal'), 'kalorije se računaju dok trener kuca (150 g piletine = 180 kcal)');
+  await Promise.all([T.p.waitForNavigation(), obrok.locator('button:has-text("+ Dodaj")').click()]);
+  await T.p.locator('[data-obrok]').first().locator('[data-nova] select').selectOption({ label: 'Pirinač (sirov)' });
+  await T.p.locator('[data-obrok]').first().locator('[data-nova] input').fill('80');
+  await Promise.all([T.p.waitForNavigation(), T.p.click('button:has-text("Sačuvaj primer")')]);
+  const zbirObroka = await T.p.locator('[data-zbir-kcal]').first().textContent();
+  ok(zbirObroka.includes('468 kcal'), 'obrok je zbir namirnica (180 + 288 = 468 kcal): ' + zbirObroka.trim());
+  await T.p.locator('[data-stavka] input').first().fill('200');
+  ok((await T.p.locator('[data-zbir-kcal]').first().textContent()).includes('528'), 'promena grama odmah menja zbir (200 g piletine)');
+  await Promise.all([T.p.waitForNavigation(), T.p.click('button:has-text("Sačuvaj primer")')]);
+  await proveriStranu(T.p, sirina, 'trener-primer-namirnice');
+  await K.p.goto(BAZA + '/ishrana');
+  const kIsh = await K.p.textContent('main');
+  ok(kIsh.includes('Plan ' + sirina) && kIsh.includes('Samo za tebe') && kIsh.includes('Pileća prsa (sirova) 200 g'), 'klijent vidi svoj primer sa namirnicama i gramima');
+  ok(kIsh.includes('528 kcal'), 'klijent vidi izračunate kalorije obroka');
   for (const [u, ime] of [['/trener/vezbe', 'trener-vezbe'], ['/trener/ishrana', 'trener-ishrana'], ['/trener/ishrana?tab=namirnice', 'trener-namirnice'], ['/trener/vodici', 'trener-vodici']]) {
     await T.p.goto(BAZA + u);
     await proveriStranu(T.p, sirina, ime);
@@ -226,6 +250,8 @@ async function tok(browser, sirina) {
   ok(!anaTekst.includes('777') && !anaTekst.includes('HAK'), 'Anini treninzi nisu promenjeni podmetnutim ID-jem');
   await A.p.goto(BAZA + '/trening');
   ok(!(await A.p.textContent('main')).includes('HAK'), 'Anina napomena nije promenjena');
+  await A.p.goto(BAZA + '/ishrana');
+  ok(!(await A.p.textContent('main')).includes('Plan ' + sirina), 'Ana ne vidi lični primer ishrane drugog klijenta');
   await A.ctx.close();
   const db = process.env.TC_BAZA || 'trener_test';
   const n = execSync(`mariadb -u trener -ptrener ${db} -N -e "SELECT COUNT(*) FROM ishrana_dnevnik WHERE id <= 40 AND klijent_id = 1"`).toString().trim();

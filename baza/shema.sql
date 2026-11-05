@@ -289,11 +289,15 @@ CREATE TABLE namirnice (
     UNIQUE KEY uq_namirnice_naziv (naziv)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Primer dana: za sve klijente (klijent_id NULL) ili samo za jednog
 CREATE TABLE primeri_ishrane (
-    id        INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    naziv     VARCHAR(120) NOT NULL,
-    redosled  SMALLINT UNSIGNED NOT NULL DEFAULT 0,
-    PRIMARY KEY (id)
+    id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    klijent_id  INT UNSIGNED NULL,
+    naziv       VARCHAR(120) NOT NULL,
+    redosled    SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY (id),
+    KEY ix_primeri_klijent (klijent_id),
+    CONSTRAINT fk_primeri_klijent FOREIGN KEY (klijent_id) REFERENCES klijenti(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE primeri_obroci (
@@ -309,6 +313,25 @@ CREATE TABLE primeri_obroci (
     PRIMARY KEY (id),
     KEY ix_po_primer (primer_id, redosled),
     CONSTRAINT fk_po_primer FOREIGN KEY (primer_id) REFERENCES primeri_ishrane(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Namirnice u obroku (iz baze namirnica). Ako obrok ima stavke, njegove
+-- kcal/P/UH/M su zbir stavki; bez stavki trener ih upisuje ručno.
+CREATE TABLE primeri_stavke (
+    id            INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    obrok_id      INT UNSIGNED NOT NULL,
+    namirnica_id  INT UNSIGNED NULL,
+    redosled      SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    naziv         VARCHAR(120) NOT NULL,
+    grami         SMALLINT UNSIGNED NOT NULL,
+    kcal          DECIMAL(7,1) NOT NULL DEFAULT 0,
+    p             DECIMAL(6,1) NOT NULL DEFAULT 0,
+    uh            DECIMAL(6,1) NOT NULL DEFAULT 0,
+    m             DECIMAL(6,1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (id),
+    KEY ix_ps_obrok (obrok_id, redosled),
+    CONSTRAINT fk_pst_obrok FOREIGN KEY (obrok_id) REFERENCES primeri_obroci(id) ON DELETE CASCADE,
+    CONSTRAINT fk_pst_namirnica FOREIGN KEY (namirnica_id) REFERENCES namirnice(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dnevni okvir koji trener postavlja svakom klijentu

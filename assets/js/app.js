@@ -159,6 +159,34 @@
     window.addEventListener('pagehide', function () { if (prljavo) sacuvaj(); });
   }
 
+  /* ---------- Primeri ishrane: vrednosti se računaju dok trener kuca grame ---------- */
+  var obrociForma = d.querySelector('form[data-obroci]');
+  if (obrociForma) {
+    var baza = {};
+    try { JSON.parse(d.getElementById('namirnice-podaci').textContent).forEach(function (n) { baza[n[0]] = n.slice(1); }); } catch (e) {}
+    var cele = function (x) { return Math.round(x).toLocaleString('sr-RS'); };
+    var opis = function (v) { return cele(v[0]) + ' kcal<br>P ' + cele(v[1]) + ' • UH ' + cele(v[2]) + ' • M ' + cele(v[3]); };
+    var obracun = function (obrok) {
+      var zbir = [0, 0, 0, 0];
+      obrok.querySelectorAll('[data-stavka]').forEach(function (r) {
+        var n = r.getAttribute('data-na100').split(',').map(Number), g = parseFloat(r.querySelector('input').value) || 0;
+        var v = n.map(function (x) { return x * g / 100; });
+        r.querySelector('[data-vrednost]').innerHTML = opis(v);
+        v.forEach(function (x, i) { zbir[i] += x; });
+      });
+      var nova = obrok.querySelector('[data-nova]');
+      if (nova) {
+        var g = parseFloat(nova.querySelector('input').value) || 0, n = baza[nova.querySelector('select').value];
+        var out = nova.querySelector('[data-vrednost]');
+        if (g > 0 && n) { var v = n.map(function (x) { return x * g / 100; }); out.innerHTML = '+ ' + opis(v); v.forEach(function (x, i) { zbir[i] += x; }); } else out.innerHTML = '';
+      }
+      var zk = obrok.querySelector('[data-zbir-kcal]'), zm = obrok.querySelector('[data-zbir-makro]');
+      if (zk) { zk.textContent = cele(zbir[0]) + ' kcal'; zm.textContent = 'P ' + cele(zbir[1]) + ' • UH ' + cele(zbir[2]) + ' • M ' + cele(zbir[3]); }
+    };
+    obrociForma.addEventListener('input', function (ev) { var o = ev.target.closest('[data-obrok]'); if (o) obracun(o); });
+    obrociForma.addEventListener('change', function (ev) { var o = ev.target.closest('[data-obrok]'); if (o) obracun(o); });
+  }
+
   /* ---------- Kalkulator kalorija (Mifflin-St Jeor, iste formule kao u prototipu) ---------- */
   var kal = d.querySelector('form[data-kalkulator]');
   if (kal) {
