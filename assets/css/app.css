@@ -187,7 +187,7 @@ details.stavka summary::-webkit-details-marker{display:none}
 .meni summary{list-style:none;cursor:pointer}
 .meni summary::-webkit-details-marker{display:none}
 .meni-lista{position:absolute;right:0;top:calc(100% + 8px);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:6px;min-width:220px;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:40}
-.meni-stavka{display:block;width:100%;text-align:left;border:0;background:none;padding:10px;border-radius:8px;font-weight:600}
+.meni-stavka{display:block;text-decoration:none;color:inherit;width:100%;text-align:left;border:0;background:none;padding:10px;border-radius:8px;font-weight:600}
 .meni-stavka:hover{background:var(--brand-soft)}
 @media (prefers-reduced-motion:no-preference){.card,.band{animation:in .18s ease-out}@keyframes in{from{transform:translateY(4px)}to{transform:none}}}
 @media (max-width:420px){.macro b{font-size:19px}h1{font-size:26px}nav.bottom a{font-size:11px}}

@@ -6,15 +6,10 @@ $greska_forme = null;
 if ($t && post()) {
     $l1 = (string)($_POST['lozinka'] ?? '');
     $l2 = (string)($_POST['lozinka2'] ?? '');
-    if (mb_strlen($l1) < 8) {
-        $greska_forme = 'Lozinka mora imati bar 8 znakova.';
-    } elseif ($l1 !== $l2) {
-        $greska_forme = 'Lozinke se ne poklapaju.';
-    } else {
-        upit('UPDATE korisnici SET lozinka_hash = ? WHERE id = ?', [password_hash($l1, PASSWORD_DEFAULT), $t['korisnik_id']]);
-        iskoristi_token((int)$t['id']);
-        // Stare "zapamti me" prijave više ne važe posle promene lozinke
-        upit('DELETE FROM zapamcene_prijave WHERE korisnik_id = ?', [$t['korisnik_id']]);
+    $greska_forme = greska_nove_lozinke($l1, $l2);
+    if ($greska_forme === null) {
+        // Postavlja lozinku, poništava token i stare "zapamti me" prijave
+        postavi_lozinku((int)$t['korisnik_id'], $l1);
         uspostavi_sesiju((int)$t['korisnik_id'], true);
         poruka($t['svrha'] === 'poziv' ? 'Dobro došao! Lozinka je postavljena.' : 'Nova lozinka je postavljena.');
         preusmeri('/');

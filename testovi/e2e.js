@@ -233,6 +233,52 @@ async function tok(browser, sirina) {
   const s = execSync(`mariadb -u trener -ptrener ${db} -N -e "SELECT COUNT(*) FROM sesija_serije WHERE kg = '777'"`).toString().trim();
   ok(s === '0', 'nijedna tuđa serija nije dobila podmetnutu kilažu');
 
+  /* ---- 6. Promena lozinke ---- */
+  // Klijent sam menja lozinku
+  await K.p.goto(BAZA + '/nalog');
+  await proveriStranu(K.p, sirina, 'klijent-nalog');
+  await K.p.fill('input[name=trenutna]', 'pogresna-lozinka');
+  await K.p.fill('input[name=lozinka]', 'nova-lozinka-22');
+  await K.p.fill('input[name=lozinka2]', 'nova-lozinka-22');
+  await Promise.all([K.p.waitForNavigation(), K.p.click('button:has-text("Sačuvaj novu lozinku")')]);
+  ok(await K.p.isVisible('text=Trenutna lozinka nije tačna'), 'pogrešna trenutna lozinka je odbijena');
+  await K.p.fill('input[name=trenutna]', novi.lozinka);
+  await K.p.fill('input[name=lozinka]', 'nova-lozinka-22');
+  await K.p.fill('input[name=lozinka2]', 'nova-lozinka-22');
+  await Promise.all([K.p.waitForNavigation(), K.p.click('button:has-text("Sačuvaj novu lozinku")')]);
+  ok(await K.p.isVisible('text=Lozinka je promenjena'), 'klijent je promenio lozinku');
+  await K.p.goto(BAZA + '/trening');
+  ok(K.p.url().endsWith('/trening'), 'klijent ostaje prijavljen posle promene lozinke');
+  const K3 = await novaStrana(browser, sirina);
+  await prijava(K3.p, { email: novi.email, lozinka: novi.lozinka });
+  ok(K3.p.url().includes('/prijava'), 'stara lozinka više ne radi');
+  await prijava(K3.p, { email: novi.email, lozinka: 'nova-lozinka-22' });
+  ok(K3.p.url().endsWith('/trening'), 'nova lozinka radi');
+
+  // Trener postavlja klijentu novu lozinku -> klijent odjavljen svuda
+  await T.p.goto(`${BAZA}/trener/klijent/${noviId}?tab=nalog`);
+  await T.p.fill('input[name=lozinka]', 'od-trenera-33');
+  await T.p.fill('input[name=lozinka2]', 'od-trenera-33');
+  await Promise.all([T.p.waitForNavigation(), T.p.click('button:has-text("Postavi lozinku")')]);
+  ok(await T.p.isVisible('text=je postavljena'), 'trener je postavio klijentu novu lozinku');
+  await K3.p.goto(BAZA + '/trening');
+  ok(K3.p.url().includes('/prijava'), 'posle trenerove promene klijent je odjavljen sa drugog uređaja');
+  await prijava(K3.p, { email: novi.email, lozinka: 'od-trenera-33' });
+  ok(K3.p.url().endsWith('/trening'), 'klijent se prijavljuje lozinkom koju je postavio trener');
+  await K3.ctx.close();
+
+  // Trener menja svoju lozinku (pa je vraća, da drugi prolaz testa radi)
+  for (const [stara, nova] of [[TRENER.lozinka, 'privremena-trener-9'], ['privremena-trener-9', TRENER.lozinka]]) {
+    await T.p.goto(BAZA + '/nalog');
+    await T.p.fill('input[name=trenutna]', stara);
+    await T.p.fill('input[name=lozinka]', nova);
+    await T.p.fill('input[name=lozinka2]', nova);
+    await Promise.all([T.p.waitForNavigation(), T.p.click('button:has-text("Sačuvaj novu lozinku")')]);
+    ok(await T.p.isVisible('text=Lozinka je promenjena'), 'trener je promenio svoju lozinku');
+  }
+  await proveriStranu(T.p, sirina, 'trener-nalog');
+  ok(await T.p.isVisible('a.meni-stavka:has-text("Promeni lozinku")') || (await T.p.$('a.meni-stavka[href="/nalog"]')) !== null, 'meni naloga ima "Promeni lozinku"');
+
   await T.ctx.close();
   await K.ctx.close();
 }

@@ -155,6 +155,17 @@ if (post()) {
                 }
                 preusmeri($ovde . '?tab=nalog');
 
+            case 'lozinka':
+                $l1 = (string)($_POST['lozinka'] ?? '');
+                $g = greska_nove_lozinke($l1, (string)($_POST['lozinka2'] ?? ''));
+                if ($g) {
+                    poruka($g, 'greska');
+                } else {
+                    postavi_lozinku($k['korisnik_id'], $l1);
+                    poruka('Nova lozinka za ' . ime_kratko($k['ime']) . ' je postavljena. Javi je klijentu.');
+                }
+                preusmeri($ovde . '?tab=nalog');
+
             case 'pozivnica':
                 require_once KOREN . '/app/mejl.php';
                 $kor = ['ime' => $k['ime'], 'email' => $k['email']];
@@ -305,6 +316,14 @@ if ($tab === 'program') {
   <span class="muted"><?= (int)$k['ima_lozinku'] ? 'Lozinka je postavljena' . ($k['poslednja_prijava'] ? ' • poslednja prijava ' . e(datum_kratko($k['poslednja_prijava'])) : '') . '.' : 'Klijent još nije postavio lozinku.' ?></span>
   <form method="post"><?= csrf_polje() ?><button class="btn block" name="akcija" value="pozivnica"><?= (int)$k['ima_lozinku'] ? 'Pošalji link za novu lozinku' : 'Pošalji pozivnicu ponovo' ?></button></form>
 </section>
+<form class="card" method="post" autocomplete="off"><?= csrf_polje() ?><h3>Postavi novu lozinku</h3>
+  <span class="muted" style="font-size:14px">Kad klijent zaboravi lozinku, a mejl mu ne stiže. Upiši novu lozinku i javi mu je — posle prijave može sam da je promeni u meniju „Promeni lozinku“. Klijent se odjavljuje sa svih uređaja.</span>
+  <div class="form">
+    <label>Nova lozinka<input class="tin" type="text" name="lozinka" minlength="8" autocomplete="off" required></label>
+    <label>Ponovi lozinku<input class="tin" type="text" name="lozinka2" minlength="8" autocomplete="off" required></label>
+  </div>
+  <button class="btn block" name="akcija" value="lozinka" data-potvrdi="Postaviti novu lozinku za <?= e($k['ime']) ?>?">Postavi lozinku</button>
+</form>
 <section class="card"><h3>Arhiva</h3>
   <span class="muted">Arhiviran klijent ne može da se prijavi i ne prikazuje se u listi. Ništa se ne briše — istorija ostaje.</span>
   <form method="post"><?= csrf_polje() ?>

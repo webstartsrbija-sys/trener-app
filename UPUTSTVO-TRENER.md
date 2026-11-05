@@ -37,4 +37,5 @@ Adresa: **https://trener.webstartsrbija.rs**. Prijavljuješ se svojim emailom i 
 - **Vežbe:** dodaj YouTube link (može „unlisted“) jednom, i dugme ▶ Video se pojavljuje kod svih klijenata.
 - **Ishrana:** primeri dana i baza namirnica su zajednički. **Dnevni okvir** (kcal, P, UH, M) postavljaš svakom klijentu posebno, u tabu Ishrana kod klijenta.
 - **Vodiči:** dodaj link (video, Drive, snimak) ili PDF do 10 MB.
+- **Lozinka:** svoju lozinku menjaš u meniju gore desno (krug sa inicijalima) → **Promeni lozinku**, a isto to mogu i klijenti. Kad klijent zaboravi lozinku: on klikne „Zaboravljena lozinka?“ na prijavi, ili ti kod njega otvoriš **Nalog → Postavi novu lozinku** i javiš mu je (on se tada odjavljuje sa svih uređaja).
 - **Arhiviranje:** kad klijent prestane da dolazi, otvori **Nalog → Arhiviraj**. Ništa se ne briše, a vraća se jednim klikom.

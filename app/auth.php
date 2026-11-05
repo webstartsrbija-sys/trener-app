@@ -66,13 +66,22 @@ function korisnik(): ?array
         return $k = null;
     }
 
-    $r = red('SELECT k.id, k.uloga, k.email, k.ime, k.aktivan, kl.id AS klijent_id
+    $r = red('SELECT k.id, k.uloga, k.email, k.ime, k.aktivan, k.lozinka_hash, kl.id AS klijent_id
               FROM korisnici k LEFT JOIN klijenti kl ON kl.korisnik_id = k.id
               WHERE k.id = ?', [$id]);
     if (!$r || !(int)$r['aktivan'] || ($r['uloga'] === 'klijent' && !$r['klijent_id'])) {
         odjavi();
         return $k = null;
     }
+    // Lozinka je promenjena posle ove prijave (na drugom uređaju ili ju je
+    // postavio trener) — ova sesija više ne važi
+    $otisak = otisak_lozinke((string)$r['lozinka_hash']);
+    if (isset($_SESSION['lozinka']) && !hash_equals($_SESSION['lozinka'], $otisak)) {
+        odjavi();
+        return $k = null;
+    }
+    $_SESSION['lozinka'] = $otisak;
+    unset($r['lozinka_hash']);
     $_SESSION['aktivnost'] = time();
     $r['id'] = (int)$r['id'];
     $r['klijent_id'] = $r['klijent_id'] !== null ? (int)$r['klijent_id'] : null;
@@ -126,10 +135,17 @@ function uspostavi_sesiju(int $korisnik_id, bool $zapamti): void
     $_SESSION['korisnik_id'] = $korisnik_id;
     $_SESSION['aktivnost'] = time();
     $_SESSION['zapamcen'] = $zapamti;
+    $_SESSION['lozinka'] = otisak_lozinke((string)vrednost('SELECT lozinka_hash FROM korisnici WHERE id = ?', [$korisnik_id]));
     upit('UPDATE korisnici SET poslednja_prijava = ? WHERE id = ?', [sada(), $korisnik_id]);
     if ($zapamti) {
         napravi_zapamti_kolacic($korisnik_id);
     }
+}
+
+/** Kratak otisak heša lozinke za sesiju (sam heš ne ulazi u sesiju). */
+function otisak_lozinke(string $hash): string
+{
+    return substr(hash('sha256', $hash), 0, 20);
 }
 
 function odjavi(): void
@@ -255,6 +271,45 @@ function nadji_token(string $token): ?array
 function iskoristi_token(int $token_id): void
 {
     upit('UPDATE tokeni SET iskoriscen = ? WHERE id = ?', [sada(), $token_id]);
+}
+
+/* -------------------------------------------------------------------------
+   Promena lozinke
+   ------------------------------------------------------------------------- */
+
+/** Provera nove lozinke; vraća poruku o grešci ili null. */
+function greska_nove_lozinke(string $l1, string $l2): ?string
+{
+    if (mb_strlen($l1) < 8) {
+        return 'Lozinka mora imati bar 8 znakova.';
+    }
+    if (mb_strlen($l1) > 200) {
+        return 'Lozinka je preduga.';
+    }
+    if ($l1 !== $l2) {
+        return 'Lozinke se ne poklapaju.';
+    }
+    return null;
+}
+
+/**
+ * Postavlja novu lozinku. Sve "zapamti me" prijave i neiskorišćeni linkovi za
+ * lozinku tog naloga prestaju da važe — ko je znao staru lozinku, više ne ulazi.
+ * $ostani_prijavljen: korisnik koji SAM menja lozinku ostaje prijavljen na ovom uređaju.
+ */
+function postavi_lozinku(int $korisnik_id, string $lozinka, bool $ostani_prijavljen = false): void
+{
+    upit('UPDATE korisnici SET lozinka_hash = ? WHERE id = ?', [password_hash($lozinka, PASSWORD_DEFAULT), $korisnik_id]);
+    upit('DELETE FROM zapamcene_prijave WHERE korisnik_id = ?', [$korisnik_id]);
+    upit('UPDATE tokeni SET iskoriscen = ? WHERE korisnik_id = ? AND iskoriscen IS NULL', [sada(), $korisnik_id]);
+    if ($ostani_prijavljen) {
+        sesija_start();
+        session_regenerate_id(true);
+        $_SESSION['lozinka'] = otisak_lozinke((string)vrednost('SELECT lozinka_hash FROM korisnici WHERE id = ?', [$korisnik_id]));
+        if (!empty($_SESSION['zapamcen'])) {
+            napravi_zapamti_kolacic($korisnik_id);
+        }
+    }
 }
 
 /* -------------------------------------------------------------------------
