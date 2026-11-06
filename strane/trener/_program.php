@@ -15,7 +15,7 @@ $sabloni = sabloni();
 ?>
 <div class="tabs" role="group" aria-label="Treninzi">
 <?php foreach ($program as $x): $zs = sesija_ove_nedelje($id, (int)$x['id']); ?>
-  <a href="<?= $ovde ?>?tab=program&t=<?= (int)$x['id'] ?>" aria-pressed="<?= $t && (int)$x['id'] === (int)$t['id'] ? 'true' : 'false' ?>"><?= ($zs['status'] ?? '') === 'zavrsena' ? '✓ ' : '' ?><?= e($x['naziv']) ?></a>
+  <a href="<?= $ovde ?>?tab=program&t=<?= (int)$x['id'] ?>" aria-pressed="<?= $t && (int)$x['id'] === (int)$t['id'] ? 'true' : 'false' ?>"><?= ($zs['status'] ?? '') === 'zavrsena' ? '✓ ' : '' ?><?= $x['dan'] ? '<small class="dan-oznaka">' . DANI_KRATKO[(int)$x['dan']] . '</small> ' : '' ?><?= e($x['naziv']) ?></a>
 <?php endforeach; ?>
 <?php if (!$t): ?>
   <form method="post" style="display:contents"><?= csrf_polje() ?><button class="dodaj" name="akcija" value="dodaj_trening">+ Dodaj trening</button></form>
@@ -48,8 +48,10 @@ $sabloni = sabloni();
   <button class="link" name="akcija" value="ukloni_trening" data-potvrdi="Ukloniti ceo trening „<?= e($t['naziv']) ?>“? Istorija klijenta ostaje.">Ukloni trening</button></div></div>
   <div class="form">
     <label class="full">Naziv treninga<input class="tin" name="naziv" value="<?= e($t['naziv']) ?>" placeholder="npr. Noge A, Push dan" style="font-weight:600" maxlength="120"></label>
-    <label>Fokus<input class="tin" name="fokus" value="<?= e($t['fokus']) ?>" maxlength="120"></label>
+    <label>Dan u nedelji<select class="tin" name="dan"><option value="0">— bez dana (redom) —</option>
+      <?php foreach (DANI_DUGO as $bd => $ime_dana): ?><option value="<?= $bd ?>"<?= (int)$t['dan'] === $bd ? ' selected' : '' ?>><?= $ime_dana ?></option><?php endforeach; ?></select></label>
     <label>Trajanje<input class="tin" name="trajanje" value="<?= e($t['trajanje']) ?>" maxlength="40"></label>
+    <label class="full">Fokus<input class="tin" name="fokus" value="<?= e($t['fokus']) ?>" maxlength="120"></label>
   </div>
   <div class="legend"><span><i class="sw"></i>Ti upisuješ</span><span><i class="sw c"></i>Klijent upisuje</span></div>
 </section>

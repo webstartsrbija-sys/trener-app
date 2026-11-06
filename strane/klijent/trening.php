@@ -34,7 +34,39 @@ foreach ($program as $t) {
         $izabran = $t;
     }
 }
+// Treninzi vezani za dane u nedelji (trener ih podesi u programu)
+$danas_dan = dan_u_nedelji(danas());
+$ima_dane = (bool)array_filter($program, fn($t) => $t['dan'] !== null);
+$danasnji = array_values(array_filter($program, fn($t) => (int)$t['dan'] === $danas_dan));
+$naredni = null;   // prvi sledeći trening ove nedelje posle danas
+foreach ($program as $t) {
+    if ($t['dan'] !== null && (int)$t['dan'] > $danas_dan && !$zavrsen((int)$t['id'])) {
+        $naredni = $t;
+        break;
+    }
+}
+if (!$izabran && $ima_dane) {
+    foreach ($danasnji as $t) {
+        if (!$zavrsen((int)$t['id'])) {
+            $izabran = $t;
+            break;
+        }
+    }
+    $izabran ??= $danasnji[0] ?? $naredni;
+}
 $izabran ??= $sledeci ?? ($program[0] ?? null);
+$malo = fn(string $n) => jezik() === 'en' ? $n : mb_strtolower($n);
+if ($blokiran) {
+    $poruka_dana = t('Program je zaključan dok se članarina ne produži.');
+} elseif (!$program) {
+    $poruka_dana = t('%s još priprema tvoj program.', pod('sajt.trener_ime'));
+} elseif ($ima_dane) {
+    $poruka_dana = $danasnji
+        ? t('Danas: %s.', implode(', ', array_map(fn($t) => $t['naziv'], $danasnji)))
+        : ($naredni ? t('Danas je dan za odmor. Sledeći trening: %s — %s.', dan_dugo((int)$naredni['dan']), $naredni['naziv']) : t('Danas je dan za odmor.'));
+} else {
+    $poruka_dana = $sledeci ? t('Danas je na redu %s.', $malo($sledeci['naziv'])) : t('Svi treninzi ove nedelje su urađeni. Bravo!');
+}
 
 $naslov = 'Trening';
 $aktivno = 'trening';
@@ -43,9 +75,13 @@ echo clanarina_upozorenje($k);
 ?>
 <section class="band"><span class="eyebrow" style="color:inherit;opacity:.7"><?= te('Nedelja %s', nedelja_programa($k)) ?><?= $program ? ' • ' . te('%s od %s treninga', $uradjeno, count($program)) : '' ?></span>
   <h1><?= te('Zdravo, %s', ime_kratko($k['ime'])) ?></h1>
-  <span class="muted"><?= $blokiran ? te('Program je zaključan dok se članarina ne produži.') : ($program ? ($sledeci ? te('Danas je na redu %s.', jezik() === 'en' ? $sledeci['naziv'] : mb_strtolower($sledeci['naziv'])) : te('Svi treninzi ove nedelje su urađeni. Bravo!')) : te('%s još priprema tvoj program.', pod('sajt.trener_ime'))) ?></span></section>
+  <span class="muted"><?= e($poruka_dana) ?></span></section>
 <?php if ($izabran):
     $tid = (int)$izabran['id'];
+    // Ako je trener izmenio program posle početka treninga, nezavršen trening dobija novi plan
+    if ($sesije[$tid]) {
+        osvezi_nezavrsenu_sesiju($sesije[$tid], $izabran);
+    }
     $s = $sesije[$tid] ? sesija_puna((int)$sesije[$tid]['id']) : null;
     $gotov = $s && $s['status'] === 'zavrsena';
     // Ako sesija postoji, prikazuje se njen snimak plana; inače trenutni plan
@@ -54,7 +90,7 @@ echo clanarina_upozorenje($k);
 ?>
 <div class="tabs" role="group" aria-label="<?= te('Treninzi') ?>">
 <?php foreach ($program as $t): ?>
-  <a href="/trening?t=<?= (int)$t['id'] ?>" aria-pressed="<?= (int)$t['id'] === $tid ? 'true' : 'false' ?>"><?= $zavrsen((int)$t['id']) ? '✓ ' : '' ?><?= e($t['naziv']) ?></a>
+  <a href="/trening?t=<?= (int)$t['id'] ?>" aria-pressed="<?= (int)$t['id'] === $tid ? 'true' : 'false' ?>"><?= $zavrsen((int)$t['id']) ? '✓ ' : '' ?><?= $t['dan'] !== null ? '<small class="dan-oznaka">' . e(dan_kratko((int)$t['dan'])) . '</small> ' : '' ?><?= e($t['naziv']) ?></a>
 <?php endforeach; ?>
 </div>
 <form method="post" action="/trening" class="stack" data-autosave="/api/trening" id="trening-forma">

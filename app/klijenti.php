@@ -52,8 +52,30 @@ function podrazumevani_dani(int $n): array
     };
 }
 
+/**
+ * Treninzi iz programa vezani za dan u nedelji: [1 => [trening, ...], 3 => [...]].
+ * Prazno ako trener nije dodelio dane (tada se treninzi rade redom).
+ */
+function treninzi_po_danu(int $klijent_id): array
+{
+    static $kes = [];
+    if (!isset($kes[$klijent_id])) {
+        $kes[$klijent_id] = [];
+        foreach (redovi('SELECT t.id, t.dan, t.naziv, t.fokus FROM treninzi t JOIN programi p ON p.id = t.program_id
+                         WHERE p.klijent_id = ? AND t.dan IS NOT NULL ORDER BY t.dan, t.redosled, t.id', [$klijent_id]) as $t) {
+            $kes[$klijent_id][(int)$t['dan']][] = $t;
+        }
+    }
+    return $kes[$klijent_id];
+}
+
+/** Dani treninga: iz programa (ako je trener dodelio dane), inače iz podešavanja klijenta. */
 function dani_treninga(array $k): array
 {
+    $iz_programa = array_keys(treninzi_po_danu((int)$k['id']));
+    if ($iz_programa) {
+        return $iz_programa;
+    }
     $d = array_values(array_unique(array_filter(array_map('intval', explode(',', (string)$k['dani_treninga'])),
         fn($x) => $x >= 1 && $x <= 7)));
     sort($d);

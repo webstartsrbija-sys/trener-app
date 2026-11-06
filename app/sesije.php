@@ -32,17 +32,77 @@ function napravi_sesiju(int $klijent_id, array $trening): int
         $trening['trajanje'], $trening['napomena'], sada(), sada(),
     ]);
     $sid = poslednji_id();
+    snimi_plan_u_sesiju($sid, $trening, []);
+    return $sid;
+}
+
+/**
+ * Vežbe i serije plana u sesiju. $upisano: [plan_serija_id => ['kg','pon','uradjeno']] —
+ * vrednosti koje je klijent već upisao, da se ne izgube pri osvežavanju.
+ */
+function snimi_plan_u_sesiju(int $sid, array $trening, array $upisano): void
+{
     foreach ($trening['vezbe'] as $i => $v) {
         upit('INSERT INTO sesija_vezbe (sesija_id, trening_vezba_id, vezba_id, redosled, naziv, zagrevanje, tempo, pauza)
               VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             [$sid, $v['id'], $v['vezba_id'], $i + 1, $v['naziv'], $v['zagrevanje'], $v['tempo'], $v['pauza']]);
         $svid = poslednji_id();
         foreach ($v['serije'] as $j => $s) {
-            upit('INSERT INTO sesija_serije (sesija_vezba_id, plan_serija_id, redosled, plan_kg, plan_pon, plan_rir)
-                  VALUES (?, ?, ?, ?, ?, ?)', [$svid, $s['id'], $j + 1, $s['kg'], $s['pon'], $s['rir']]);
+            $u = $upisano[(int)$s['id']] ?? null;
+            upit('INSERT INTO sesija_serije (sesija_vezba_id, plan_serija_id, redosled, plan_kg, plan_pon, plan_rir, kg, pon, uradjeno)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [$svid, $s['id'], $j + 1, $s['kg'], $s['pon'], $s['rir'], $u['kg'] ?? '', $u['pon'] ?? '', (int)($u['uradjeno'] ?? 0)]);
         }
     }
-    return $sid;
+}
+
+/**
+ * Trening koji je klijent započeo, a nije završio, prati "živ" program: ako je
+ * trener posle početka izmenio program, plan u sesiji se osvežava, a ono što je
+ * klijent već upisao ostaje (po seriji plana). Završeni treninzi se ne diraju —
+ * istorija čuva ono što je tada bilo planirano.
+ *
+ * @return bool da li je sesija osvežena
+ */
+function osvezi_nezavrsenu_sesiju(array $sesija, array $trening): bool
+{
+    if ($sesija['status'] !== 'u_toku') {
+        return false;
+    }
+    // Poredi se sadržaj plana, ne vreme izmene (dve izmene u istoj sekundi bi promakle)
+    $sada = [$trening['naziv'], $trening['fokus'], $trening['trajanje'], (string)$trening['napomena']];
+    foreach ($trening['vezbe'] as $v) {
+        $sada[] = [(int)$v['id'], (int)$v['vezba_id'], $v['zagrevanje'], $v['tempo'], $v['pauza'],
+            array_map(fn($x) => [(int)$x['id'], $x['kg'], $x['pon'], $x['rir']], $v['serije'])];
+    }
+    $snimak = [$sesija['naziv'], $sesija['fokus'], $sesija['trajanje'], (string)$sesija['napomena_trenera']];
+    $sv = redovi('SELECT * FROM sesija_vezbe WHERE sesija_id = ? ORDER BY redosled, id', [$sesija['id']]);
+    $ser = [];
+    if ($sv) {
+        foreach (redovi('SELECT * FROM sesija_serije WHERE sesija_vezba_id IN (' . implode(',', array_map('intval', array_column($sv, 'id'))) . ') ORDER BY redosled, id') as $r) {
+            $ser[(int)$r['sesija_vezba_id']][] = [(int)$r['plan_serija_id'], $r['plan_kg'], $r['plan_pon'], $r['plan_rir']];
+        }
+    }
+    foreach ($sv as $v) {
+        $snimak[] = [(int)$v['trening_vezba_id'], (int)$v['vezba_id'], $v['zagrevanje'], $v['tempo'], $v['pauza'], $ser[(int)$v['id']] ?? []];
+    }
+    if ($sada === $snimak) {
+        return false;
+    }
+    transakcija(function () use ($sesija, $trening) {
+        $upisano = [];
+        foreach (redovi('SELECT ss.plan_serija_id, ss.kg, ss.pon, ss.uradjeno FROM sesija_serije ss
+                         JOIN sesija_vezbe sv ON sv.id = ss.sesija_vezba_id WHERE sv.sesija_id = ? AND ss.plan_serija_id IS NOT NULL',
+            [$sesija['id']]) as $r) {
+            $upisano[(int)$r['plan_serija_id']] = $r;
+        }
+        upit('DELETE FROM sesija_vezbe WHERE sesija_id = ?', [$sesija['id']]);
+        snimi_plan_u_sesiju((int)$sesija['id'], $trening, $upisano);
+        // kreirano = vreme snimka plana
+        upit('UPDATE sesije SET naziv = ?, fokus = ?, trajanje = ?, napomena_trenera = ?, kreirano = ? WHERE id = ?',
+            [$trening['naziv'], $trening['fokus'], $trening['trajanje'], $trening['napomena'], sada(), $sesija['id']]);
+    });
+    return true;
 }
 
 /** Sesija sa vežbama, serijama i check-inom. */

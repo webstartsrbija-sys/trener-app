@@ -365,6 +365,7 @@ if ($tab === 'program') {
     <label>Jezik (aplikacija i mejlovi)<select class="tin" name="jezik"><option value="sr">Srpski</option><option value="en"<?= $k['jezik'] === 'en' ? ' selected' : '' ?>>English</option></select></label>
     <label>Oznake (zarez)<input class="tin" name="oznake" value="<?= e($k['oznake']) ?>" placeholder="npr. online, početnik"></label>
     <fieldset class="full dani"><legend>Dani treninga (za kalendar)</legend>
+      <?php if (treninzi_po_danu($id)): ?><span class="muted" style="font-size:13px;text-transform:none;letter-spacing:0;font-weight:500">Dani se uzimaju iz programa (svaki trening ima dan u nedelji). Ovo važi samo za treninge bez dana.</span><?php endif; ?>
       <?php foreach (DANI_KRATKO as $b => $dn): ?><label class="potvrda"><input type="checkbox" name="dani[]" value="<?= $b ?>"<?= in_array($b, $dani, true) ? ' checked' : '' ?>> <?= $dn ?></label><?php endforeach; ?>
     </fieldset>
     <label class="full">Interna beleška (klijent ne vidi)<textarea class="tin" name="napomena" rows="3"><?= e($k['napomena']) ?></textarea></label>

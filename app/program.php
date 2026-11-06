@@ -24,7 +24,8 @@ function program_klijenta(int $klijent_id): int
 function program_stablo(int $program_id): array
 {
     $treninzi = [];
-    foreach (redovi('SELECT * FROM treninzi WHERE program_id = ? ORDER BY redosled, id', [$program_id]) as $t) {
+    // Treninzi vezani za dan idu po danima (pon → ned), ostali posle, redom
+    foreach (redovi('SELECT * FROM treninzi WHERE program_id = ? ORDER BY dan IS NULL, dan, redosled, id', [$program_id]) as $t) {
         $t['vezbe'] = [];
         $treninzi[(int)$t['id']] = $t;
     }
@@ -100,8 +101,8 @@ function kopiraj_program(int $izvor_id, int $odrediste_id): void
     $stablo = program_stablo($izvor_id);
     upit('DELETE FROM treninzi WHERE program_id = ?', [$odrediste_id]);
     foreach ($stablo as $t) {
-        upit('INSERT INTO treninzi (program_id, redosled, naziv, fokus, trajanje, napomena) VALUES (?, ?, ?, ?, ?, ?)',
-            [$odrediste_id, $t['redosled'], $t['naziv'], $t['fokus'], $t['trajanje'], $t['napomena']]);
+        upit('INSERT INTO treninzi (program_id, redosled, dan, naziv, fokus, trajanje, napomena) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [$odrediste_id, $t['redosled'], $t['dan'], $t['naziv'], $t['fokus'], $t['trajanje'], $t['napomena']]);
         $tid = poslednji_id();
         foreach ($t['vezbe'] as $v) {
             upit('INSERT INTO trening_vezbe (trening_id, vezba_id, redosled, zagrevanje, tempo, pauza) VALUES (?, ?, ?, ?, ?, ?)',
@@ -136,9 +137,10 @@ function sacuvaj_kao_sablon(int $program_id, string $naziv): int
  */
 function sacuvaj_trening_forma(int $trening_id, array $post): void
 {
-    upit('UPDATE treninzi SET naziv = ?, fokus = ?, trajanje = ?, napomena = ? WHERE id = ?', [
+    $dan = unos_int($post['dan'] ?? 0);
+    upit('UPDATE treninzi SET naziv = ?, fokus = ?, trajanje = ?, napomena = ?, dan = ? WHERE id = ?', [
         unos($post['naziv'] ?? '', 120) ?: 'Trening', unos($post['fokus'] ?? '', 120),
-        unos($post['trajanje'] ?? '', 40), unos($post['napomena'] ?? '', 5000), $trening_id,
+        unos($post['trajanje'] ?? '', 40), unos($post['napomena'] ?? '', 5000), $dan >= 1 && $dan <= 7 ? $dan : null, $trening_id,
     ]);
     $moje_tv = array_map('intval', array_column(redovi('SELECT id FROM trening_vezbe WHERE trening_id = ?', [$trening_id]), 'id'));
     $aktivne = array_map('intval', array_column(redovi('SELECT id FROM vezbe'), 'id'));

@@ -15,7 +15,7 @@ $stavke = match ($nav ?? null) {
     'trener'  => [['/trener', 'pocetna', 'Početna', 'po'], ['/trener/klijenti', 'klijenti', 'Klijenti', 'kl'], ['/trener/vezbe', 'vezbe', 'Vežbe', 'bz'], ['/trener/ishrana', 'ishrana', 'Ishrana', 'is'], ['/trener/vodici', 'vodici', 'Vodiči', 'vo']],
     default   => [],
 };
-$p = uzmi_poruku();
+$p = $poruka_strane ?? null;
 ?>
 </main>
 <?php if ($stavke): ?>

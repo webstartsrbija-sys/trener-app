@@ -24,6 +24,18 @@
     try { localStorage.setItem('tema', nova); } catch (e) {}
   });
 
+  /* ---------- Povratak u aplikaciju posle dužeg vremena ----------
+     Telefon "zamrzne" stranu u pozadini; kad se vrati posle 10+ minuta, strana se
+     osvežava da ne bi radila sa zastarelim podacima. Nesačuvan unos se prvo čuva
+     (autosave), a forme sa nesačuvanim izmenama se ne diraju. */
+  var skrivenoOd = 0;
+  function imaNesacuvano() { return !!d.querySelector('form[data-cuvaj-upozorenje].prljavo'); }
+  d.addEventListener('visibilitychange', function () {
+    if (d.visibilityState === 'hidden') { skrivenoOd = Date.now(); return; }
+    if (skrivenoOd && Date.now() - skrivenoOd > 10 * 60 * 1000 && !imaNesacuvano()) location.reload();
+  });
+  window.addEventListener('pageshow', function (ev) { if (ev.persisted && !imaNesacuvano()) location.reload(); });
+
   /* ---------- Toast ---------- */
   var tt;
   function toast(tekst, greska) {
@@ -78,9 +90,9 @@
   /* ---------- Upozorenje na nesačuvane izmene (trenerov program) ---------- */
   d.querySelectorAll('form[data-cuvaj-upozorenje]').forEach(function (f) {
     var prljavo = false;
-    f.addEventListener('input', function () { prljavo = true; });
-    f.addEventListener('change', function () { prljavo = true; });
-    f.addEventListener('submit', function () { prljavo = false; });
+    f.addEventListener('input', function () { prljavo = true; f.classList.add('prljavo'); });
+    f.addEventListener('change', function () { prljavo = true; f.classList.add('prljavo'); });
+    f.addEventListener('submit', function () { prljavo = false; f.classList.remove('prljavo'); });
     d.addEventListener('submit', function (ev) { if (ev.target !== f) prljavo = false; });
     window.addEventListener('beforeunload', function (ev) { if (prljavo) { ev.preventDefault(); ev.returnValue = ''; } });
   });

@@ -49,12 +49,16 @@ $status = function (string $x) use ($sesije, $planirani_dani, $danas, $u_opsegu)
     }
     return $x < $danas ? 'miss' : ($x === $danas ? 'today' : 'plan');
 };
-$chip = function (string $x) use ($status, $sesije): string {
+$po_danu = treninzi_po_danu((int)$k['id']);
+// Nazivi treninga zakazanih za taj dan u nedelji (ako ih je trener vezao za dane)
+$zakazano = fn(string $x) => implode(', ', array_map(fn($t) => $t['naziv'], $po_danu[dan_u_nedelji($x)] ?? []));
+$chip = function (string $x) use ($status, $sesije, $zakazano): string {
+    $z = $zakazano($x);
     return match ($status($x)) {
         'done'  => implode(' ', array_map(fn($s) => '<span class="chip ok">✓ ' . e($s['naziv']) . '</span>', $sesije[$x])),
-        'miss'  => '<span class="chip bad">' . te('Propušten') . '</span>',
-        'today' => '<span class="chip warn">' . te('Danas') . '</span>',
-        'plan'  => '<span class="chip">' . te('Trening • planiran') . '</span>',
+        'miss'  => '<span class="chip bad">' . te('Propušten') . ($z !== '' ? ' • ' . e($z) : '') . '</span>',
+        'today' => '<span class="chip warn">' . te('Danas') . ($z !== '' ? ' • ' . e($z) : '') . '</span>',
+        'plan'  => '<span class="chip">' . ($z !== '' ? te('%s • planiran', $z) : te('Trening • planiran')) . '</span>',
         default => '<span class="chip mute">' . te('Odmor') . '</span>',
     };
 };
@@ -174,8 +178,25 @@ if ($v === 'mesec') {
   <?= checkin_chipovi($pun['checkin']) ?>
   <?php if (trim((string)$pun['napomena_klijenta']) !== ''): ?><div class="done-view"><b><?= te('Napomena klijenta:') ?></b> <?= e_redovi($pun['napomena_klijenta']) ?></div><?php endif; ?>
 <?php endforeach;
-elseif ($st === 'today' || $st === 'plan'): ?>
+elseif ($st === 'today' || $st === 'plan'):
+    $zakazani = $po_danu[dan_u_nedelji($d)] ?? [];
+    if (!$zakazani): ?>
   <p class="muted" style="margin:0"><?= te('Zakazan je trening za ovaj dan.') ?></p>
+<?php else:
+        $stablo = [];
+        foreach (program_stablo(program_klijenta((int)$k['id'])) as $pt) {
+            $stablo[(int)$pt['id']] = $pt;
+        }
+        foreach ($zakazani as $z): $pt = $stablo[(int)$z['id']] ?? null; if (!$pt) { continue; } ?>
+  <span class="eyebrow"><?= te('Plan za ovaj dan') ?></span>
+  <div class="row between"><b><?= e($pt['naziv']) ?><?= $pt['fokus'] !== '' ? ' • ' . e($pt['fokus']) : '' ?></b>
+    <?php if (str_starts_with($url, '/istorija')): ?><a class="btn small" href="/trening?t=<?= (int)$pt['id'] ?>"><?= te('Otvori trening') ?></a>
+    <?php else: ?><a class="link" href="/trener/klijent/<?= (int)$k['id'] ?>?tab=program&amp;t=<?= (int)$pt['id'] ?>">Program →</a><?php endif; ?></div>
+  <?php foreach ($pt['vezbe'] as $vz): ?>
+  <div class="meal"><div><b><?= e(naziv_jezik($vz)) ?></b><?php $op = vezba_opis($vz); if ($op !== ''): ?><div class="vezba-opis"><?= e($op) ?></div><?php endif; ?></div>
+    <div class="k" style="color:var(--ink)"><?= e(serije_rec(count($vz['serije']))) ?><br><span class="muted"><?= e(implode(' • ', array_map(fn($sr) => ($sr['kg'] !== '' ? $sr['kg'] . '×' : '') . $sr['pon'], $vz['serije']))) ?></span></div></div>
+  <?php endforeach; ?>
+<?php endforeach; endif; ?>
 <?php elseif ($st === 'miss'): ?>
   <p class="muted" style="margin:0"><?= te('Trening nije upisan.') ?></p>
 <?php else: ?>

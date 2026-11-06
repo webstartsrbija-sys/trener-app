@@ -155,6 +155,7 @@ CREATE TABLE treninzi (
     id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
     program_id  INT UNSIGNED NOT NULL,
     redosled    SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    dan         TINYINT UNSIGNED NULL,               -- 1 = ponedeljak … 7 = nedelja; NULL = bez dana (radi se redom)
     naziv       VARCHAR(120) NOT NULL,
     fokus       VARCHAR(120) NOT NULL DEFAULT '',
     trajanje    VARCHAR(40)  NOT NULL DEFAULT '',

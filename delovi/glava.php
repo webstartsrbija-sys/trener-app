@@ -14,6 +14,14 @@ $js_tekst = [];
 foreach (['Čuvam…', 'Sačuvano u %s', 'Nije sačuvano: %s Pokušaću ponovo.', 'Ima nesačuvanih izmena…', 'Link je kopiran', 'Greška', 'Nema rezultata', 'Izaberi namirnicu sa liste', 'kcal / 100 g', 'Prikazano %s'] as $x) {
     $js_tekst[$x] = t($x);
 }
+// Poruka (toast) se čita sada, pa se sesija odmah otpušta: dok PHP drži sesiju
+// zaključanu, svaki drugi zahtev istog korisnika (autosave, druga strana) čeka
+// u redu — na telefonu to izgleda kao da je aplikacija "zabola".
+csrf_token();
+$poruka_strane = uzmi_poruku();
+if (session_status() === PHP_SESSION_ACTIVE) {
+    session_write_close();
+}
 ?><!doctype html>
 <html lang="<?= $en ? 'en' : 'sr-Latn' ?>">
 <head>

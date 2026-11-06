@@ -197,6 +197,40 @@ async function tok(browser, sirina) {
   ok(await T.p.locator('input[name^="serija"][name$="[kg]"]').first().inputValue() === '999', 'trener je sačuvao izmenu programa');
   await K.p.goto(BAZA + '/istorija?v=dan');
   ok(!(await K.p.textContent('main')).includes('999'), 'istorija klijenta čuva stari plan (izmena programa je ne menja)');
+  // Klijent započne Trening 2, trener zatim izmeni plan -> klijent vidi novi plan, a njegov upis ostaje
+  await K.p.goto(BAZA + '/trening');
+  const t2 = await K.p.locator('.tabs a', { hasText: 'Trening 2' }).getAttribute('href');
+  await K.p.goto(BAZA + t2);
+  await K.p.locator('input[name$="[pon]"]').first().fill('11');
+  await K.p.waitForFunction(() => /Sačuvano u/.test(document.querySelector('[data-autosave-status]').textContent), null, { timeout: 8000 });
+  const t2id = t2.split('t=')[1];
+  await T.p.goto(`${BAZA}/trener/klijent/${noviId}?tab=program&t=${t2id}`);
+  await T.p.locator('input[name^="serija"][name$="[kg]"]').first().fill('77');
+  await Promise.all([T.p.waitForNavigation(), T.p.click('button:has-text("Sačuvaj program")')]);
+  await K.p.goto(BAZA + t2);
+  ok((await K.p.locator('.set .plan').first().textContent()).includes('77'), 'započet trening prikazuje plan koji je trener izmenio posle početka');
+  ok((await K.p.locator('input[name$="[pon]"]').first().inputValue()) === '11', 'klijentov upis ostaje posle izmene plana');
+  // Trening vezan za dan u nedelji: Tomislav stavi Trening 3 na sutra -> klijent ga vidi u istoriji (plan) i na treningu
+  const sutra = new Date(Date.now() + 864e5);
+  const sutraIso = sutra.toISOString().slice(0, 10);
+  const sutraDan = ((sutra.getDay() + 6) % 7) + 1;
+  if (sutraDan !== 1) {   // sutra je još u ovoj nedelji (danas nije nedelja)
+    await K.p.goto(BAZA + '/trening');
+    const t3 = await K.p.locator('.tabs a', { hasText: 'Trening 3' }).getAttribute('href');
+    const t3id = t3.split('t=')[1];
+    await T.p.goto(`${BAZA}/trener/klijent/${noviId}?tab=program&t=${t3id}`);
+    await T.p.selectOption('select[name=dan]', String(sutraDan));
+    await Promise.all([T.p.waitForNavigation(), T.p.click('button:has-text("Sačuvaj program")')]);
+    ok((await T.p.locator('.tabs a[aria-pressed=true]', { hasText: 'Trening 3' }).locator('.dan-oznaka').count()) === 1, 'trener je vezao trening za dan (oznaka dana u tabu)');
+    await K.p.goto(BAZA + '/istorija');
+    ok((await K.p.textContent('main')).includes('Trening 3 • planiran'), 'nedelja u istoriji pokazuje koji je trening zakazan');
+    await K.p.goto(BAZA + '/istorija?v=dan&d=' + sutraIso);
+    const dan = await K.p.textContent('main');
+    ok(dan.includes('Plan za ovaj dan') && dan.includes('Otvori trening'), 'dan u budućnosti pokazuje plan treninga sa vežbama');
+    await K.p.goto(BAZA + '/trening');
+    ok((await K.p.locator('.tabs a', { hasText: 'Trening 3' }).locator('.dan-oznaka').count()) === 1, 'tab treninga ima oznaku dana');
+    ok(/Danas je dan za odmor|Danas:/.test(await K.p.textContent('.band')), 'poruka dana prati raspored po danima');
+  }
   await T.p.click('text=Produži 30 dana').catch(() => {});
   await T.p.goto(`${BAZA}/trener/klijent/${noviId}?tab=clanarina`);
   await Promise.all([T.p.waitForNavigation(), T.p.click('button[value=produzi]')]);
