@@ -208,7 +208,8 @@
     sel.required = false;
     polje.required = obavezno;
     var opcije = [].filter.call(sel.options, function (o) { return o.value; }).map(function (o) {
-      return { v: o.value, t: o.text, n: norm(o.text + ' ' + (o.getAttribute('data-alt') || '')), k: o.getAttribute('data-kcal') };
+      var kc = o.getAttribute('data-kcal');
+      return { v: o.value, t: o.text, n: norm(o.text + ' ' + (o.getAttribute('data-alt') || '')), info: o.getAttribute('data-info') || (kc !== null ? kc + ' ' + T('kcal / 100 g') : '') };
     });
     var aktivna = -1, vidljive = [];
 
@@ -237,7 +238,7 @@
         b.setAttribute('role', 'option');
         b.className = 'birac-opcija' + (i === aktivna ? ' aktivna' : '');
         var ime = d.createElement('span'); ime.textContent = o.t;
-        var kc = d.createElement('small'); kc.textContent = o.k + ' ' + T('kcal / 100 g');
+        var kc = d.createElement('small'); kc.textContent = o.info;
         b.appendChild(ime); b.appendChild(kc);
         b.addEventListener('mousedown', function (ev) { ev.preventDefault(); });   // fokus ostaje u polju
         b.addEventListener('click', function () { izaberi(o); });

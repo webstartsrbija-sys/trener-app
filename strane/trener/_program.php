@@ -8,7 +8,7 @@ foreach ($program as $x) {
     }
 }
 $t ??= $program[0] ?? null;
-$sve_vezbe = redovi('SELECT id, naziv, aktivna FROM vezbe ORDER BY naziv');
+$sve_vezbe = redovi('SELECT id, naziv, naziv_en, aktivna, tezina, oprema, misici, misici_pomocni FROM vezbe ORDER BY naziv');
 $drugi = redovi('SELECT kl.id, k.ime FROM klijenti kl JOIN korisnici k ON k.id = kl.korisnik_id
                  WHERE kl.id <> ? AND kl.arhiviran = 0 ORDER BY k.ime', [$id]);
 $sabloni = sabloni();
@@ -57,11 +57,12 @@ $sabloni = sabloni();
 <?php foreach ($t['vezbe'] as $vi => $v): $tv = (int)$v['id']; ?>
   <div class="ex" id="v<?= $tv ?>">
     <div class="ex-head">
-      <select class="tin" name="vezba[<?= $tv ?>][vezba_id]" style="font-weight:700;font-size:16px;max-width:240px" aria-label="Vežba">
-        <?php foreach ($sve_vezbe as $b): if (!(int)$b['aktivna'] && (int)$b['id'] !== (int)$v['vezba_id']) { continue; } ?>
-        <option value="<?= (int)$b['id'] ?>"<?= (int)$b['id'] === (int)$v['vezba_id'] ? ' selected' : '' ?>><?= e($b['naziv']) ?></option>
-        <?php endforeach; ?>
+      <div style="flex:1 1 auto;min-width:0;max-width:340px">
+      <select class="tin" name="vezba[<?= $tv ?>][vezba_id]" style="font-weight:700;font-size:16px" aria-label="Vežba" data-pretraga="Traži vežbu: naziv, mišić ili oprema…">
+        <?= opcije_vezbi($sve_vezbe, (int)$v['vezba_id']) ?>
       </select>
+      <?php $opis = vezba_opis($v); if ($opis !== ''): ?><div class="vezba-opis"><?= e($opis) ?></div><?php endif; ?>
+      </div>
       <div class="row" style="gap:10px;flex-wrap:nowrap">
         <?php if ($vi > 0): ?><button class="link" name="akcija" value="vezba_gore:<?= $tv ?>" aria-label="Pomeri gore">↑</button><?php endif; ?>
         <?php if ($vi < count($t['vezbe']) - 1): ?><button class="link" name="akcija" value="vezba_dole:<?= $tv ?>" aria-label="Pomeri dole">↓</button><?php endif; ?>

@@ -226,3 +226,11 @@ img,svg{max-width:100%}
 .birac-opcija:hover,.birac-opcija.aktivna{background:var(--brand-soft)}
 .birac-nema{padding:10px;color:var(--muted);font-size:14px}
 .stavka-red .birac{min-width:0}
+.vezba-opis{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.35}
+.birac .tin[type=search]{font-weight:inherit}
+.filteri{display:flex;flex-direction:column;gap:6px}
+.filteri .tabs a{font-size:13px;padding:5px 11px}
+.stavka-vezba{align-items:flex-start}
+.birac-opcija{flex-wrap:wrap;row-gap:2px}
+.birac-opcija small{white-space:normal;text-align:right;margin-left:auto}
+.birac-opcija small{font-weight:500}

@@ -33,7 +33,7 @@ function program_stablo(int $program_id): array
     }
     $ids = implode(',', array_keys($treninzi));
     $vezbe = [];
-    foreach (redovi("SELECT tv.*, v.naziv, v.naziv_en, v.youtube, v.tehnika FROM trening_vezbe tv
+    foreach (redovi("SELECT tv.*, v.naziv, v.naziv_en, v.youtube, v.tehnika, v.tehnika_en, v.tezina, v.oprema, v.misici, v.misici_pomocni FROM trening_vezbe tv
                      JOIN vezbe v ON v.id = tv.vezba_id
                      WHERE tv.trening_id IN ($ids) ORDER BY tv.redosled, tv.id") as $v) {
         $v['serije'] = [];

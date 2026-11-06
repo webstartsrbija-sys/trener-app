@@ -35,6 +35,10 @@ Trener menja program kad god hoće (tabele `programi`, `treninzi`, `trening_vezb
 - Autosave šalje unos 0,8 s posle kucanja, kao i kad se telefon zaključa (`sendBeacon`). Zahtevi idu jedan po jedan, a red klijenta se zaključava u bazi (`FOR UPDATE`), pa ne mogu da nastanu duple sesije.
 - **Šablon** je program bez klijenta (`programi.klijent_id IS NULL`).
 
+## Baza vežbi
+
+`baza/vezbe-osnovne.sql` ima 109 najčešćih vežbi u teretani, sa srpskim i engleskim nazivom, težinom izvođenja (`pocetna`/`srednja`/`napredna`), opremom, glavnim i pomoćnim mišićima i kratkom tehnikom na oba jezika. Ključevi opreme i mišića i njihovi nazivi su u `app/vezbe.php`, spisak vežbi u `dev/vezbe/lista.py`, a SQL se pravi skriptom `dev/vezbe/napravi-sql.py`. Opisi su naši; sa drugih sajtova ništa nije preuzeto. Slika nema, video je YouTube link koji upisuje trener.
+
 ## Baza namirnica
 
 `baza/namirnice-usda.sql` ima 223 namirnice (kcal, P, UH, M na 100 g) iz USDA FoodData Central, SR Legacy (https://fdc.nal.usda.gov). Ti podaci su javno vlasništvo (CC0), sa srpskim i engleskim nazivom. Spisak i nazivi su u `dev/usda/lista.py`, a SQL se ponovo pravi skriptom `dev/usda/napravi-sql.py` (uputstvo je u zaglavlju skripte). Kolona `namirnice.izvor` čuva USDA ID. Trener sve vrednosti može da menja u aplikaciji.

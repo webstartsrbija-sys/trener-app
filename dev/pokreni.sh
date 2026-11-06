@@ -10,6 +10,7 @@ if [ "$1" = "--nova" ]; then
   mariadb -u trener -ptrener "${TC_BAZA:-trener_test}" < baza/shema.sql
   mariadb -u trener -ptrener "${TC_BAZA:-trener_test}" < baza/podaci-primer.sql
   mariadb -u trener -ptrener "${TC_BAZA:-trener_test}" < baza/namirnice-usda.sql
+  mariadb -u trener -ptrener "${TC_BAZA:-trener_test}" < baza/vezbe-osnovne.sql
   php alati/novi-trener.php trener@primer.rs "Tomislav" "trener-lozinka-1"
   rm -rf kes/mejlovi
 fi

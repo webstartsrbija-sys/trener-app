@@ -54,7 +54,7 @@ function sesija_puna(int $sesija_id): ?array
     }
     $s['checkin'] = red('SELECT * FROM checkini WHERE sesija_id = ?', [$sesija_id]);
     $vezbe = [];
-    foreach (redovi('SELECT sv.*, v.youtube, v.tehnika, v.naziv_en FROM sesija_vezbe sv LEFT JOIN vezbe v ON v.id = sv.vezba_id
+    foreach (redovi('SELECT sv.*, v.youtube, v.tehnika, v.tehnika_en, v.naziv_en, v.tezina, v.oprema, v.misici, v.misici_pomocni FROM sesija_vezbe sv LEFT JOIN vezbe v ON v.id = sv.vezba_id
                      WHERE sv.sesija_id = ? ORDER BY sv.redosled, sv.id', [$sesija_id]) as $v) {
         $v['serije'] = [];
         $vezbe[(int)$v['id']] = $v;

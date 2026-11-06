@@ -123,8 +123,13 @@ CREATE TABLE vezbe (
     id        INT UNSIGNED NOT NULL AUTO_INCREMENT,
     naziv     VARCHAR(120) NOT NULL,
     naziv_en  VARCHAR(120) NOT NULL DEFAULT '',   -- naziv za klijente na engleskom (prazno = srpski)
+    tezina    VARCHAR(10)  NOT NULL DEFAULT '',   -- pocetna | srednja | napredna
+    oprema    VARCHAR(160) NOT NULL DEFAULT '',   -- ključevi odvojeni zarezom (app/vezbe.php), npr. 'sipka,klupa'
+    misici    VARCHAR(160) NOT NULL DEFAULT '',   -- glavni mišići, ključevi (app/vezbe.php)
+    misici_pomocni VARCHAR(160) NOT NULL DEFAULT '',
     youtube   VARCHAR(255) NOT NULL DEFAULT '',   -- samo link (unlisted video), ništa se ne otprema
     tehnika   TEXT NULL,                          -- kratka napomena o tehnici
+    tehnika_en TEXT NULL,
     aktivna   TINYINT(1) NOT NULL DEFAULT 1,      -- 0 = sakrivena iz izbora, stari programi je i dalje prikazuju
     kreirano  DATETIME NOT NULL,
     PRIMARY KEY (id),

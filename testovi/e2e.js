@@ -229,6 +229,36 @@ async function tok(browser, sirina) {
   await T.p.fill('input[data-filter]', 'jogurt');
   const vidljivo = await T.p.locator('details[data-nam]:visible').count();
   ok(vidljivo >= 3 && vidljivo <= 8, 'pretraga baze namirnica kod trenera („jogurt“ -> ' + vidljivo + ' rezultata)');
+  // Baza vežbi: pretraga, filter, izmena (težina, oprema, mišići)
+  await T.p.goto(BAZA + '/trener/vezbe');
+  ok(await T.p.locator('[data-vezba]').count() >= 100, 'baza ima 100+ vežbi');
+  await T.p.fill('input[data-filter]', 'zgib');
+  ok((await T.p.locator('[data-vezba]:visible').first().textContent()).includes('Zgibovi'), 'pretraga „zgib“ nalazi Zgibove');
+  await T.p.fill('input[data-filter]', 'sklek');
+  ok(await T.p.locator('[data-vezba]:visible', { hasText: 'Sklekovi' }).count() >= 3, 'pretraga „sklek“ nalazi više vrsta sklekova');
+  await T.p.goto(BAZA + '/trener/vezbe?grupa=trbuh&tezina=pocetna');
+  const trbuh = await T.p.locator('[data-vezba]').allTextContents();
+  ok(trbuh.length >= 5 && trbuh.every((t) => /Početni/.test(t)) && trbuh.some((t) => t.includes('Plank')), 'filter Trbuh + Početni (' + trbuh.length + ' vežbi)');
+  await T.p.goto(BAZA + '/trener/vezbe');
+  await Promise.all([T.p.waitForNavigation(), T.p.locator('[data-vezba]', { hasText: 'Zgibovi pothvatom' }).locator('a:has-text("Uredi")').click()]);
+  ok(await T.p.isChecked('#uredi input[name="oprema[]"][value=vratilo]') && await T.p.isChecked('#uredi input[name="misici[]"][value=biceps]'), 'forma vežbe pokazuje opremu i mišiće');
+  await T.p.check('#uredi input[name="misici_pomocni[]"][value=podlaktice]');
+  await T.p.selectOption('#uredi select[name=tezina]', 'napredna');
+  await Promise.all([T.p.waitForNavigation(), T.p.click('#uredi button:has-text("Sačuvaj")')]);
+  ok(await T.p.isChecked('#uredi input[name="misici_pomocni[]"][value=podlaktice]') && (await T.p.inputValue('#uredi select[name=tezina]')) === 'napredna', 'izmena vežbe je sačuvana');
+  await proveriStranu(T.p, sirina, 'trener-vezba-uredi');
+  // U programu: vežba se bira pretragom po mišiću
+  await T.p.goto(`${BAZA}/trener/klijent/${noviId}?tab=program`);
+  const vz = T.p.locator('.ex').first();
+  await vz.locator('.birac input[type=search]').fill('grudi sipka');
+  const prva = await vz.locator('.birac-opcija').first().textContent();
+  ok(/Bench press|bench/i.test(prva) && /Grudi/.test(prva), 'izbor vežbe pretragom „grudi sipka“: ' + prva.trim().slice(0, 60));
+  await vz.locator('.birac input[type=search]').fill('zgibovi pothvatom');
+  await vz.locator('.birac-opcija > span').filter({ hasText: /^Zgibovi pothvatom$/ }).click();
+  await Promise.all([T.p.waitForNavigation(), T.p.click('button:has-text("Sačuvaj program")')]);
+  ok((await T.p.locator('.ex').first().textContent()).includes('Široki leđni'), 'vežba u programu je zamenjena i prikazuje mišiće');
+  await K.p.goto(BAZA + '/trening');
+  ok((await K.p.locator('.vezba-opis').count()) >= 1, 'klijent ispod vežbe vidi mišiće, opremu i težinu');
   for (const [u, ime] of [['/trener/vezbe', 'trener-vezbe'], ['/trener/ishrana', 'trener-ishrana'], ['/trener/ishrana?tab=namirnice', 'trener-namirnice'], ['/trener/vodici', 'trener-vodici']]) {
     await T.p.goto(BAZA + u);
     await proveriStranu(T.p, sirina, ime);

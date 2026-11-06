@@ -76,7 +76,8 @@ echo clanarina_upozorenje($k);
   <div class="ex">
     <div class="ex-head"><div><div class="ex-name"><?= e(naziv_jezik($v)) ?></div>
       <span class="muted" style="font-size:13px"><?= serije_rec(count($v['serije'])) ?><?= $v['zagrevanje'] !== '' ? ' • ' . te('Zagrevanje: %s', $v['zagrevanje']) : '' ?><?= $v['tempo'] !== '' ? ' • ' . te('Tempo %s', $v['tempo']) : '' ?><?= $v['pauza'] !== '' ? ' • ' . te('Pauza %s', $v['pauza']) : '' ?></span>
-      <?php if (trim((string)($v['tehnika'] ?? '')) !== ''): ?><details class="tehnika"><summary><?= te('Tehnika') ?></summary><?= e_redovi($v['tehnika']) ?></details><?php endif; ?>
+      <?php $opis = vezba_opis($v); if ($opis !== ''): ?><div class="vezba-opis"><?= e($opis) ?></div><?php endif; ?>
+      <?php $teh = naziv_jezik(['tehnika' => (string)($v['tehnika'] ?? ''), 'tehnika_en' => (string)($v['tehnika_en'] ?? '')], 'tehnika'); if (trim($teh) !== ''): ?><details class="tehnika"><summary><?= te('Tehnika') ?></summary><?= e_redovi($teh) ?></details><?php endif; ?>
     </div><a class="btn small" href="<?= e(youtube_link((string)($v['youtube'] ?? ''), naziv_jezik($v))) ?>" target="_blank" rel="noopener">▶ Video</a></div>
     <div class="sets"><div class="set hd"><span>#</span><span><?= te('Plan') ?></span><span><?= te('Tvoja kg') ?></span><span><?= te('Tvoja pon.') ?></span><span></span></div>
     <?php foreach ($v['serije'] as $i => $sr):

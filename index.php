@@ -15,6 +15,7 @@ require __DIR__ . '/app/sesije.php';
 require __DIR__ . '/app/napredak.php';
 require __DIR__ . '/app/ishrana.php';
 require __DIR__ . '/app/slike.php';
+require __DIR__ . '/app/vezbe.php';
 
 podesavanja();
 
