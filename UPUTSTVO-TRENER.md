@@ -11,7 +11,7 @@ Adresa: **https://trener.webstartsrbija.rs**. Prijavljuješ se svojim emailom i 
 
 ## 2. Program
 1. Otvori klijenta, tab **Program**.
-2. **+ Dodaj trening.** Upiši naziv (npr. „Noge A“), fokus i trajanje.
+2. **+ Dodaj trening.** Upiši naziv (npr. „Noge A“), fokus i trajanje, i izaberi **Dan u nedelji** (npr. Ponedeljak). Klijent tada na Treningu vidi „Danas: Noge A“, a u Istoriji sve zakazane dane unapred, sa vežbama. Bez dana se treninzi rade redom.
 3. **+ Dodaj vežbu.** Izaberi vežbu iz baze, pa upiši zagrevanje, tempo i pauzu.
 4. Za svaku seriju upiši **kilažu, ponavljanja i RIR**. Dugmad: **+ Dodaj seriju** dodaje seriju, **✕** briše seriju, **↑ ↓** pomeraju vežbu.
 5. Dole napiši **napomenu** klijentu i klikni **Sačuvaj program**. Klijent odmah vidi izmenu.
