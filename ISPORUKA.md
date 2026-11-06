@@ -17,7 +17,7 @@ Napravi se komandom `sh alati/napravi-zip.sh`:
    - napravi bazu `trener` (cPanel je imenuje `KORISNIK_trener`);
    - napravi korisnika `trener` sa jakom lozinkom (postaje `KORISNIK_trener`);
    - u delu *Add User To Database* daj tom korisniku **ALL PRIVILEGES** nad bazom.
-5. **Šema.** U *phpMyAdmin* izaberi bazu, pa *Import → `shema.sql` → Go*. Za prikaz treneru možeš posle toga da uvezeš i `podaci-primer.sql`. Pre pravog rada te primer klijente arhiviraj ili bazu isprazni i ponovo uvezi samo šemu.
+5. **Šema.** U *phpMyAdmin* izaberi bazu, pa *Import → `shema.sql` → Go*. Za prikaz treneru zatim (po želji) uvezi `podaci-primer.sql`. Na kraju uvezi `namirnice-usda.sql` (baza od 223 namirnice) — tim redom, jer primer podataka upisuje svoje namirnice pod istim brojevima. Pre pravog rada te primer klijente arhiviraj ili bazu isprazni i ponovo uvezi samo šemu.
 6. **Mejl nalog.** U *Email Accounts* napravi `trener@webstartsrbija.rs` (ili koristi postojeći `sajt@`). Iz *Connect Devices* prepiši SMTP server i port (obično `mail.webstartsrbija.rs`, 465, SSL).
 7. **Upload.** U *File Manager* otvori Document Root iz koraka 1, uradi *Upload* ZIP-a, pa desni klik → *Extract*. U *Settings* uključi *Show Hidden Files*: moraju da se vide `.htaccess` i `.user.ini`.
 8. **config.php.** U folderu `app/` kopiraj `config.primer.php` u `config.php` (*Copy*), pa ga otvori sa *Edit* i popuni (spisak je ispod).

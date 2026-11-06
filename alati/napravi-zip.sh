@@ -16,6 +16,7 @@ cp kes/.htaccess isporuka/trener-app/kes/
 cp baza/.htaccess baza/shema.sql isporuka/trener-app/baza/
 cp baza/shema.sql isporuka/shema.sql
 cp baza/podaci-primer.sql isporuka/podaci-primer.sql
+cp baza/namirnice-usda.sql isporuka/namirnice-usda.sql
 (cd isporuka/trener-app && zip -qr "../trener-app-$D.zip" . -x '*.DS_Store')
 rm -rf isporuka/trener-app
 echo "Gotovo: isporuka/trener-app-$D.zip, isporuka/shema.sql, isporuka/podaci-primer.sql"

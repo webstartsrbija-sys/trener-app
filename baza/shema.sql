@@ -289,6 +289,7 @@ CREATE TABLE namirnice (
     p      DECIMAL(5,1) NOT NULL DEFAULT 0,
     uh     DECIMAL(5,1) NOT NULL DEFAULT 0,
     m      DECIMAL(5,1) NOT NULL DEFAULT 0,
+    izvor  VARCHAR(40) NOT NULL DEFAULT '',   -- npr. 'USDA FDC 171477'; prazno = upisao trener
     PRIMARY KEY (id),
     UNIQUE KEY uq_namirnice_naziv (naziv)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

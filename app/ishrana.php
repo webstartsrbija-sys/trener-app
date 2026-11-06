@@ -16,6 +16,24 @@ function namirnice(): array
 }
 
 /**
+ * <option> za izbor namirnice, sa podacima za pretragu (app.js: select[data-pretraga]):
+ * data-alt = naziv na drugom jeziku (traži se i po njemu), data-kcal = kcal na 100 g.
+ */
+function opcije_namirnica(array $nam, bool $prazna = true): string
+{
+    if (jezik() === 'en') {
+        usort($nam, fn($a, $b) => strcasecmp(naziv_jezik($a), naziv_jezik($b)));
+    }
+    $h = $prazna ? '<option value="">' . te('— izaberi namirnicu —') . '</option>' : '';
+    foreach ($nam as $n) {
+        $ime = naziv_jezik($n);
+        $alt = $ime === $n['naziv'] ? (string)($n['naziv_en'] ?? '') : (string)$n['naziv'];
+        $h .= '<option value="' . (int)$n['id'] . '" data-alt="' . e($alt) . '" data-kcal="' . (int)round((float)$n['kcal']) . '">' . e($ime) . '</option>';
+    }
+    return $h;
+}
+
+/**
  * Primeri dana sa obrocima i stavkama (namirnicama).
  * $za_klijenta: null = svi primeri (trener), broj = zajednički + primeri tog klijenta.
  */

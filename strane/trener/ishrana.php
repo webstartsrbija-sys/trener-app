@@ -166,8 +166,8 @@ require KOREN . '/delovi/glava.php';
       </div>
       <?php endforeach; ?>
       <div class="stavka-red nova" data-nova>
-        <select class="tin naziv" name="nova[<?= $oid ?>][namirnica_id]" aria-label="Namirnica iz baze">
-          <?php foreach ($nam as $n): ?><option value="<?= (int)$n['id'] ?>"><?= e($n['naziv']) ?></option><?php endforeach; ?>
+        <select class="tin naziv" name="nova[<?= $oid ?>][namirnica_id]" aria-label="Namirnica iz baze" data-pretraga="Traži namirnicu…">
+          <?= opcije_namirnica($nam) ?>
         </select>
         <label class="grami"><input class="tin" type="number" min="1" max="3000" inputmode="numeric" name="nova[<?= $oid ?>][grami]" placeholder="g" aria-label="Grama"> g</label>
         <span class="k" data-vrednost></span>
@@ -197,22 +197,26 @@ require KOREN . '/delovi/glava.php';
 </form>
 <?php else: ?><section class="card"><p class="muted" style="margin:0">Još nema primera. Dodaj prvi.</p></section><?php endif; ?>
 <?php else: $nam = namirnice(); ?>
-<form class="card" method="post"><?= csrf_polje() ?><h3>Nova namirnica (vrednosti na 100 g)</h3>
+<details class="card"><summary class="btn primary" style="align-self:flex-start;list-style:none;cursor:pointer">+ Nova namirnica</summary>
+<form class="stack" method="post"><?= csrf_polje() ?><h3>Nova namirnica (vrednosti na 100 g)</h3>
   <div class="form">
     <label class="full">Naziv<input class="tin" name="naziv" required maxlength="120" placeholder="npr. Ćuretina (sirova)"></label>
     <label class="full">Naziv na engleskom (za strane klijente)<input class="tin" name="naziv_en" maxlength="120" placeholder="npr. Turkey (raw)"></label>
     <?php foreach (['kcal' => 'kcal', 'p' => 'Protein g', 'uh' => 'UH g', 'm' => 'Masti g'] as $kk => $l): ?><label><?= $l ?><input class="tin" name="<?= $kk ?>" inputmode="decimal" required></label><?php endforeach; ?>
   </div>
   <button class="btn primary" name="akcija" value="nam_dodaj">Dodaj</button>
-</form>
+</form></details>
 <section class="card">
+  <div class="row"><input class="tin" type="search" placeholder="Pretraži <?= count($nam) ?> namirnica (npr. pile, jogurt, sir)" style="flex:1" aria-label="Pretraga namirnica" data-filter="[data-nam]" data-filter-broj="#nam-broj"></div>
+  <span class="muted" style="font-size:13px" id="nam-broj"><?= count($nam) ?> namirnica • vrednosti na 100 g • izvor: USDA FoodData Central (javni podaci) ili tvoj unos</span>
 <?php foreach ($nam as $n): ?>
-  <details class="guide stavka"><summary><b><?= e($n['naziv']) ?></b><span class="muted" style="margin-left:auto;font-size:13px;text-align:right"><?= broj($n['kcal'], 0) ?> kcal • P <?= broj($n['p']) ?> • UH <?= broj($n['uh']) ?> • M <?= broj($n['m']) ?></span></summary>
+  <details class="guide stavka" data-nam data-tekst="<?= e($n['naziv'] . ' ' . $n['naziv_en']) ?>"><summary><span style="min-width:0"><b><?= e($n['naziv']) ?></b><?php if ($n['naziv_en'] !== ''): ?><br><span class="muted" style="font-size:13px"><?= e($n['naziv_en']) ?></span><?php endif; ?></span><span class="muted" style="margin-left:auto;font-size:13px;text-align:right;white-space:nowrap"><?= broj($n['kcal'], 0) ?> kcal<br>P <?= broj($n['p']) ?> • UH <?= broj($n['uh']) ?> • M <?= broj($n['m']) ?></span></summary>
     <form method="post" class="stack" style="padding-top:10px"><?= csrf_polje() ?><input type="hidden" name="id" value="<?= (int)$n['id'] ?>">
       <div class="form"><label class="full">Naziv<input class="tin" name="naziv" value="<?= e($n['naziv']) ?>" required maxlength="120"></label>
       <label class="full">Naziv na engleskom<input class="tin" name="naziv_en" value="<?= e($n['naziv_en']) ?>" maxlength="120"></label>
       <?php foreach (['kcal' => 'kcal', 'p' => 'Protein g', 'uh' => 'UH g', 'm' => 'Masti g'] as $kk => $l): ?><label><?= $l ?><input class="tin" name="<?= $kk ?>" inputmode="decimal" value="<?= e(broj_polje($n[$kk])) ?>"></label><?php endforeach; ?></div>
-      <div class="row"><button class="btn primary small" name="akcija" value="nam_sacuvaj">Sačuvaj</button><button class="link" name="akcija" value="nam_obrisi" formnovalidate data-potvrdi="Obrisati namirnicu?" style="color:var(--bad)">Obriši</button></div>
+      <div class="row"><button class="btn primary small" name="akcija" value="nam_sacuvaj">Sačuvaj</button><button class="link" name="akcija" value="nam_obrisi" formnovalidate data-potvrdi="Obrisati namirnicu?" style="color:var(--bad)">Obriši</button>
+      <?php if ($n['izvor'] !== ''): ?><span class="muted" style="font-size:12px;margin-left:auto"><?= e($n['izvor']) ?></span><?php endif; ?></div>
     </form>
   </details>
 <?php endforeach; ?>

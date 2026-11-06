@@ -11,7 +11,7 @@ $jezik_dugme = !$ja || $ja['uloga'] === 'klijent';
 $ovde_put = (string)(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/') . (isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] !== '' ? '?' . $_SERVER['QUERY_STRING'] : '');
 // Tekstovi koje koristi app.js
 $js_tekst = [];
-foreach (['Čuvam…', 'Sačuvano u %s', 'Nije sačuvano: %s Pokušaću ponovo.', 'Ima nesačuvanih izmena…', 'Link je kopiran', 'Greška'] as $x) {
+foreach (['Čuvam…', 'Sačuvano u %s', 'Nije sačuvano: %s Pokušaću ponovo.', 'Ima nesačuvanih izmena…', 'Link je kopiran', 'Greška', 'Nema rezultata', 'Izaberi namirnicu sa liste', 'kcal / 100 g', 'Prikazano %s'] as $x) {
     $js_tekst[$x] = t($x);
 }
 ?><!doctype html>

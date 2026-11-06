@@ -26,7 +26,7 @@ foreach (array_merge(
      'Prijava je istekla. Osveži stranu i prijavi se ponovo.',
      'Izaberi sliku.', 'Slika je veća od 8 MB.', 'Otpremanje nije uspelo. Probaj ponovo.', 'Slika mora biti JPG, PNG ili WebP.',
      'Na serveru nije uključen PHP dodatak GD (cPanel → Select PHP Version → gd).', 'Slika ne može da se sačuva (prava na folder privatno/slike).',
-     'Čuvam…', 'Sačuvano u %s', 'Nije sačuvano: %s Pokušaću ponovo.', 'Ima nesačuvanih izmena…', 'Link je kopiran', 'Glavni meni'],
+     'Čuvam…', 'Sačuvano u %s', 'Nije sačuvano: %s Pokušaću ponovo.', 'Ima nesačuvanih izmena…', 'Link je kopiran', 'Glavni meni', 'Nema rezultata', 'Izaberi namirnicu sa liste', 'kcal / 100 g', 'Prikazano %s'],
     []) as $x) {
     $kljucevi[$x] ??= '(promenljiva)';
 }

@@ -73,9 +73,8 @@ if ($tab === 'dan'):
   </div></div>
   <p class="muted" style="margin:0"><?= te('Izaberi namirnicu i upiši gramažu. Sve se sabira samo i čuva se u tvojoj istoriji.') ?></p>
   <form method="post" class="row"><?= csrf_polje() ?><input type="hidden" name="datum" value="<?= e($datum) ?>">
-    <select class="cin" name="namirnica_id" style="flex:2 1 180px" aria-label="<?= te('Namirnica') ?>" required>
-      <?php if (jezik() === 'en') { usort($nam, fn($a, $b) => strcasecmp(naziv_jezik($a), naziv_jezik($b))); } ?>
-      <?php foreach ($nam as $n): ?><option value="<?= (int)$n['id'] ?>"><?= e(naziv_jezik($n)) ?></option><?php endforeach; ?>
+    <select class="cin" name="namirnica_id" style="flex:2 1 180px" aria-label="<?= te('Namirnica') ?>" required data-pretraga="<?= te('Pretraži: piletina, jogurt, banana…') ?>">
+      <?= opcije_namirnica($nam) ?>
     </select>
     <input class="cin" name="grami" type="number" inputmode="numeric" min="1" max="3000" value="100" style="flex:1 1 80px" aria-label="<?= te('Grama') ?>" required>
     <button class="btn primary" name="akcija" value="dodaj"><?= te('Dodaj') ?></button>

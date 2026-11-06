@@ -59,6 +59,14 @@ async function prijava(p, k) {
   await Promise.all([p.waitForNavigation(), p.click('button:has-text("Prijavi se")')]);
 }
 
+/** Izbor namirnice kroz pretragu (select[data-pretraga] -> polje + lista). */
+async function izaberiNamirnicu(okvir, upit, tekst) {
+  const polje = okvir.locator('.birac input[type=search]').first();
+  await polje.fill(upit);
+  const tacno = new RegExp('^' + tekst.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$');
+  await okvir.locator('.birac-opcija > span').filter({ hasText: tacno }).first().click();
+}
+
 function poslednjiMejl(za) {
   if (!fs.existsSync(MEJLOVI)) return null;
   const f = fs.readdirSync(MEJLOVI).sort().reverse().map((x) => fs.readFileSync(path.join(MEJLOVI, x), 'utf8')).find((t) => t.includes('Za: ' + za));
@@ -145,6 +153,15 @@ async function tok(browser, sirina) {
   await Promise.all([K.p.waitForNavigation(), K.p.click('button[value=tezina]')]);
   ok(await K.p.isVisible('text=Težina je upisana'), 'težina je upisana');
   await K.p.goto(BAZA + '/ishrana?tab=dan');
+  // Pretraga: bez kvačica i po korenu reči ("cokolad" -> Čokolada, "piletina" -> Pileća)
+  await K.p.locator('.birac input[type=search]').fill('cokolad');
+  ok(await K.p.locator('.birac-opcija', { hasText: 'Crna čokolada 70%' }).count() === 1, 'pretraga bez kvačica nalazi „Crna čokolada 70%“');
+  await K.p.locator('.birac input[type=search]').fill('piletina prsa');
+  ok((await K.p.locator('.birac-opcija').first().textContent()).includes('Pileća prsa'), 'pretraga po korenu: „piletina prsa“ nalazi „Pileća prsa“');
+  await K.p.locator('.birac input[type=search]').fill('chicken');
+  ok(await K.p.locator('.birac-opcija', { hasText: 'Pileća prsa' }).count() >= 1, 'pretraga radi i na engleskom („chicken“)');
+  ok(await K.p.locator('select[name=namirnica_id] option').count() > 200, 'baza ima više od 200 namirnica');
+  await izaberiNamirnicu(K.p, 'banan', 'Banana');
   await K.p.fill('input[name=grami]', '150');
   await Promise.all([K.p.waitForNavigation(), K.p.click('button[value=dodaj]')]);
   ok(await K.p.locator('.meal').count() >= 1, 'namirnica je dodata u "Sastavi svoj dan"');
@@ -191,12 +208,12 @@ async function tok(browser, sirina) {
   await Promise.all([T.p.waitForNavigation(), T.p.click('button:has-text("+ Novi primer za klijenta")')]);
   ok(/\/trener\/ishrana\?p=\d+/.test(T.p.url()), 'napravljen je primer za klijenta');
   const obrok = T.p.locator('[data-obrok]').first();
-  await obrok.locator('[data-nova] select').selectOption({ label: 'Pileća prsa (sirova)' });
-  await obrok.locator('[data-nova] input').fill('150');
+  await izaberiNamirnicu(obrok.locator('[data-nova]'), 'pileca prsa sirov', 'Pileća prsa (sirova)');
+  await obrok.locator('[data-nova] input[type=number]').fill('150');
   ok((await obrok.locator('[data-nova] [data-vrednost]').textContent()).includes('180 kcal'), 'kalorije se računaju dok trener kuca (150 g piletine = 180 kcal)');
   await Promise.all([T.p.waitForNavigation(), obrok.locator('button:has-text("+ Dodaj")').click()]);
-  await T.p.locator('[data-obrok]').first().locator('[data-nova] select').selectOption({ label: 'Pirinač (sirov)' });
-  await T.p.locator('[data-obrok]').first().locator('[data-nova] input').fill('80');
+  await izaberiNamirnicu(T.p.locator('[data-obrok]').first().locator('[data-nova]'), 'pirinac', 'Pirinač (sirov)');
+  await T.p.locator('[data-obrok]').first().locator('[data-nova] input[type=number]').fill('80');
   await Promise.all([T.p.waitForNavigation(), T.p.click('button:has-text("Sačuvaj primer")')]);
   const zbirObroka = await T.p.locator('[data-zbir-kcal]').first().textContent();
   ok(zbirObroka.includes('468 kcal'), 'obrok je zbir namirnica (180 + 288 = 468 kcal): ' + zbirObroka.trim());
@@ -208,6 +225,10 @@ async function tok(browser, sirina) {
   const kIsh = await K.p.textContent('main');
   ok(kIsh.includes('Plan ' + sirina) && kIsh.includes('Samo za tebe') && kIsh.includes('Pileća prsa (sirova) 200 g'), 'klijent vidi svoj primer sa namirnicama i gramima');
   ok(kIsh.includes('528 kcal'), 'klijent vidi izračunate kalorije obroka');
+  await T.p.goto(BAZA + '/trener/ishrana?tab=namirnice');
+  await T.p.fill('input[data-filter]', 'jogurt');
+  const vidljivo = await T.p.locator('details[data-nam]:visible').count();
+  ok(vidljivo >= 3 && vidljivo <= 8, 'pretraga baze namirnica kod trenera („jogurt“ -> ' + vidljivo + ' rezultata)');
   for (const [u, ime] of [['/trener/vezbe', 'trener-vezbe'], ['/trener/ishrana', 'trener-ishrana'], ['/trener/ishrana?tab=namirnice', 'trener-namirnice'], ['/trener/vodici', 'trener-vodici']]) {
     await T.p.goto(BAZA + u);
     await proveriStranu(T.p, sirina, ime);
@@ -370,7 +391,7 @@ async function tok(browser, sirina) {
   await Promise.all([J.p.waitForNavigation(), J.p.click('button:has-text("Save password")')]);
   ok(await J.p.isVisible('text=Welcome! Your password has been set.'), 'poruka posle lozinke je na engleskom');
   const strane = [['/trening', ['Finish workout', 'How are you today?', 'Squat', 'Warm-up:']], ['/ishrana?tab=dan', ['Build your day', 'What you have left', 'Chicken breast (raw)']],
-    ['/ishrana?tab=kalk', ['Calorie calculator', 'Basal metabolic rate']], ['/istorija?v=mesec', ['Workout done', 'By week', 'Mon']], ['/istorija?v=dan', ['Rest day.', 'Weight']],
+    ['/ishrana?tab=kalk', ['Calorie calculator', 'Basal metabolic rate']], ['/istorija?v=mesec', ['Workout done', 'By week', 'Mon']], ['/istorija?v=dan', ['Nutrition', 'Weight']],
     ['/napredak', ['Weigh in every morning', 'Strength • estimated 1RM']], ['/vodici', ['Guides']], ['/nalog', ['Profile photo', 'Change password']]];
   for (const [u, reci] of strane) {
     await J.p.goto(BAZA + u);

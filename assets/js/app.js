@@ -164,6 +164,130 @@
     window.addEventListener('pagehide', function () { if (prljavo) sacuvaj(); });
   }
 
+  /* ---------- Pretraga: bez kvačica i velikih slova ("cokolada" nalazi "Čokolada") ---------- */
+  function norm(t) {
+    return String(t || '').toLowerCase().replace(/đ/g, 'dj').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9%]+/g, ' ').trim();
+  }
+  // Svaka reč upita mora da se nađe; duža reč se traži i po korenu (prva 4 slova): "piletina" -> "pileća"
+  function poklapanje(upit, tekst) {
+    var reci = norm(upit).split(' ').filter(Boolean), t = ' ' + tekst + ' ', ocena = 0;
+    for (var i = 0; i < reci.length; i++) {
+      var r = reci[i];
+      if (t.indexOf(' ' + r + ' ') >= 0) ocena += 5;          // cela reč ("sir" u "Beli sir")
+      else if (t.indexOf(' ' + r) >= 0) ocena += 3;           // početak reči ("jog" u "jogurt")
+      else if (t.indexOf(r) >= 0) ocena += 2;
+      else if (r.length >= 5 && t.indexOf(' ' + r.slice(0, 4)) >= 0) ocena += 1;
+      else return 0;
+    }
+    if (t.indexOf(' ' + reci[0]) === 0) ocena += 2;            // naziv počinje upitom
+    return ocena;
+  }
+
+  /* Izbor namirnice sa pretragom: select[data-pretraga] dobija polje za kucanje i listu rezultata.
+     Select ostaje u formi (skriven) — server dobija isto kao i ranije. */
+  d.querySelectorAll('select[data-pretraga]').forEach(function (sel) {
+    var omot = d.createElement('div'), polje = d.createElement('input'), lista = d.createElement('div');
+    omot.className = 'birac';
+    omot.style.cssText = sel.style.cssText;
+    polje.type = 'search';
+    polje.className = sel.classList.contains('cin') ? 'cin' : 'tin';
+    polje.placeholder = sel.getAttribute('data-pretraga');
+    polje.autocomplete = 'off';
+    polje.setAttribute('aria-label', sel.getAttribute('aria-label') || '');
+    polje.setAttribute('role', 'combobox');
+    polje.setAttribute('aria-expanded', 'false');
+    lista.className = 'birac-lista';
+    lista.setAttribute('role', 'listbox');
+    lista.hidden = true;
+    sel.parentNode.insertBefore(omot, sel);
+    omot.appendChild(polje);
+    omot.appendChild(lista);
+    omot.appendChild(sel);
+    sel.hidden = true;
+    var obavezno = sel.required;
+    sel.required = false;
+    polje.required = obavezno;
+    var opcije = [].filter.call(sel.options, function (o) { return o.value; }).map(function (o) {
+      return { v: o.value, t: o.text, n: norm(o.text + ' ' + (o.getAttribute('data-alt') || '')), k: o.getAttribute('data-kcal') };
+    });
+    var aktivna = -1, vidljive = [];
+
+    function izaberi(o) {
+      sel.value = o.v;
+      polje.value = o.t;
+      polje.setCustomValidity('');
+      zatvori();
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      // Sledeće polje (grami) odmah dobija fokus
+      var sledece = omot.parentNode.querySelector('input[type=number]');
+      if (sledece) { sledece.focus(); sledece.select(); }
+    }
+    function zatvori() { lista.hidden = true; polje.setAttribute('aria-expanded', 'false'); aktivna = -1; }
+    function prikazi() {
+      var q = polje.value;
+      vidljive = (q.trim() === '' ? opcije.map(function (o) { return [1, o]; }) : opcije.map(function (o) { return [poklapanje(q, o.n), o]; }).filter(function (x) { return x[0] > 0; }))
+        .sort(function (a, b) { return b[0] - a[0] || a[1].t.length - b[1].t.length; }).slice(0, 40).map(function (x) { return x[1]; });
+      lista.innerHTML = '';
+      if (!vidljive.length) {
+        var nema = d.createElement('div'); nema.className = 'birac-nema'; nema.textContent = T('Nema rezultata'); lista.appendChild(nema);
+      }
+      vidljive.forEach(function (o, i) {
+        var b = d.createElement('button');
+        b.type = 'button';
+        b.setAttribute('role', 'option');
+        b.className = 'birac-opcija' + (i === aktivna ? ' aktivna' : '');
+        var ime = d.createElement('span'); ime.textContent = o.t;
+        var kc = d.createElement('small'); kc.textContent = o.k + ' ' + T('kcal / 100 g');
+        b.appendChild(ime); b.appendChild(kc);
+        b.addEventListener('mousedown', function (ev) { ev.preventDefault(); });   // fokus ostaje u polju
+        b.addEventListener('click', function () { izaberi(o); });
+        lista.appendChild(b);
+      });
+      lista.hidden = false;
+      polje.setAttribute('aria-expanded', 'true');
+    }
+    polje.addEventListener('input', function () {
+      sel.value = '';
+      aktivna = -1;
+      if (obavezno) polje.setCustomValidity(polje.value ? T('Izaberi namirnicu sa liste') : '');
+      prikazi();
+    });
+    polje.addEventListener('focus', prikazi);
+    polje.addEventListener('blur', function () { setTimeout(zatvori, 150); });
+    polje.addEventListener('keydown', function (ev) {
+      if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        if (lista.hidden) prikazi();
+        aktivna = Math.max(0, Math.min(vidljive.length - 1, aktivna + (ev.key === 'ArrowDown' ? 1 : -1)));
+        [].forEach.call(lista.children, function (c, i) { c.classList.toggle('aktivna', i === aktivna); if (i === aktivna) c.scrollIntoView({ block: 'nearest' }); });
+      } else if (ev.key === 'Enter' && !lista.hidden && vidljive.length) {
+        ev.preventDefault();
+        izaberi(vidljive[aktivna >= 0 ? aktivna : 0]);
+      } else if (ev.key === 'Escape') {
+        zatvori();
+      }
+    });
+    if (sel.value) { var o0 = opcije.filter(function (o) { return o.v === sel.value; })[0]; if (o0) polje.value = o0.t; }
+  });
+
+  /* Filter liste na strani (npr. baza namirnica): input[data-filter="selektor stavki"] */
+  d.querySelectorAll('input[data-filter]').forEach(function (polje) {
+    var stavke = [].slice.call(d.querySelectorAll(polje.getAttribute('data-filter')));
+    var broj = polje.getAttribute('data-filter-broj') ? d.querySelector(polje.getAttribute('data-filter-broj')) : null;
+    var pocetni = broj ? broj.textContent : '';
+    stavke.forEach(function (el) { el._norm = norm(el.getAttribute('data-tekst') || el.textContent); });
+    polje.addEventListener('input', function () {
+      var q = polje.value, n = 0;
+      var ocene = stavke.map(function (el, i) { return [q.trim() ? poklapanje(q, el._norm) : 1, i, el]; });
+      ocene.forEach(function (x) { x[2].hidden = x[0] === 0; if (x[0]) n++; });
+      // Najbolji pogoci idu prvi; bez upita se vraća prvobitni redosled
+      var roditelj = stavke[0] && stavke[0].parentNode, kraj = stavke[stavke.length - 1] && stavke[stavke.length - 1].nextSibling;
+      ocene.sort(function (a, b) { return q.trim() ? (b[0] - a[0] || a[1] - b[1]) : a[1] - b[1]; })
+        .forEach(function (x) { roditelj.insertBefore(x[2], kraj); });
+      if (broj) broj.textContent = q.trim() ? T('Prikazano %s', n + ' / ' + stavke.length) : pocetni;
+    });
+  });
+
   /* ---------- Primeri ishrane: vrednosti se računaju dok trener kuca grame ---------- */
   var obrociForma = d.querySelector('form[data-obroci]');
   if (obrociForma) {
@@ -181,7 +305,7 @@
       });
       var nova = obrok.querySelector('[data-nova]');
       if (nova) {
-        var g = parseFloat(nova.querySelector('input').value) || 0, n = baza[nova.querySelector('select').value];
+        var g = parseFloat(nova.querySelector('input[type=number]').value) || 0, n = baza[nova.querySelector('select').value];
         var out = nova.querySelector('[data-vrednost]');
         if (g > 0 && n) { var v = n.map(function (x) { return x * g / 100; }); out.innerHTML = '+ ' + opis(v); v.forEach(function (x, i) { zbir[i] += x; }); } else out.innerHTML = '';
       }

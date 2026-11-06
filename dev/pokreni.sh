@@ -9,6 +9,7 @@ if [ "$1" = "--nova" ]; then
   mariadb -u trener -ptrener -e "DROP DATABASE IF EXISTS ${TC_BAZA:-trener_test}; CREATE DATABASE ${TC_BAZA:-trener_test} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
   mariadb -u trener -ptrener "${TC_BAZA:-trener_test}" < baza/shema.sql
   mariadb -u trener -ptrener "${TC_BAZA:-trener_test}" < baza/podaci-primer.sql
+  mariadb -u trener -ptrener "${TC_BAZA:-trener_test}" < baza/namirnice-usda.sql
   php alati/novi-trener.php trener@primer.rs "Tomislav" "trener-lozinka-1"
   rm -rf kes/mejlovi
 fi
